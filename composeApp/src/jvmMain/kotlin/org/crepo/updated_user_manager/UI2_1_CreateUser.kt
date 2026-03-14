@@ -1,19 +1,22 @@
 package org.crepo.updated_user_manager
 
-import androidx.compose.foundation.background
+import org.jetbrains.compose.ui.tooling.preview.Preview
+
+
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.jetbrains.compose.ui.tooling.preview.Preview
+import cafe.adriel.voyager.navigator.LocalNavigator
 import java.lang.ProcessBuilder
 
 @Composable
@@ -22,38 +25,34 @@ fun UI2_1(navigateBack: () -> Unit) {
     var password by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
 
-    Box(modifier = Modifier.fillMaxSize().background(Color.LightGray)) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Заголовок
         Text(
             text = "Создание пользователя",
-            style = MaterialTheme.typography.headlineLarge,
-            modifier = Modifier.align(Alignment.TopCenter).padding(top = 16.dp)
+            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+            modifier = Modifier.align(Alignment.Start)
         )
 
-        // Имя
-        Text(
-            text = "Введите имя нового пользователя:",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.align(Alignment.Center).padding(bottom = 50.dp)
-        )
+        // Поле: Имя
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Имя") },
+            label = { Text("Имя пользователя") },
             placeholder = { Text("user1") },
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(bottom = 275.dp),
-            singleLine = true
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            supportingText = {
+                Text("Введите имя нового пользователя")
+            }
         )
 
-        // Пароль
-        Text(
-            text = "Введите пароль для этого пользователя",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(top = 80.dp, bottom = 10.dp)
-        )
+        // Поле: Пароль
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -61,85 +60,106 @@ fun UI2_1(navigateBack: () -> Unit) {
             placeholder = { Text("••••••") },
             visualTransformation = if (password.isEmpty()) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(bottom = 120.dp),
-            singleLine = true
-        )
-
-        Text(
-            text = "Примечание: если не хотите добавлять пароль, оставьте поле пустым",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .align(Alignment.Center)
-                .padding(top = 10.dp)
-        )
-
-        // Кнопка: Создать
-        Button(
-            modifier = Modifier
-                .padding(top = 180.dp)
-                .align(Alignment.Center),
-            onClick = {
-                if (username.isBlank()) {
-                    result = "❗ Введите имя пользователя"
-                    return@Button
-                }
-
-                val command = mutableListOf("net", "user", username)
-                if (password.isNotBlank()) {
-                    command.add(password)
-                }
-                command.add("/add")
-
-                try {
-                    val process = ProcessBuilder(command)
-                        .redirectErrorStream(true)
-                        .start()
-
-                    val exitCode = process.waitFor()
-                    if (exitCode == 0) {
-                        result = "✅ Пользователь '$username' успешно создан!"
-                    } else {
-                        val output = process.inputStream.bufferedReader().readText()
-                        result = if (output.contains("уже существует"))
-                            "⚠️ Пользователь '$username' уже существует"
-                        else
-                            "❌ Ошибка: код $exitCode"
-                    }
-                } catch (e: Exception) {
-                    result = "❌ Ошибка: ${e.message}"
-                }
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            supportingText = {
+                Text("Оставьте пустым, если не хотите задавать пароль")
             }
+        )
+
+        // Примечание
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.medium,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            Text(text = "Создать", fontSize = 30.sp)
+            Text(
+                text = "⚠️ ВНИМАНИЕ:\n" +
+                        "• Приложение должно запускаться от имени администратора\n" +
+                        "• Если пользователь уже существует — будет ошибка",
+                modifier = Modifier.padding(12.dp),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
 
-        // Кнопка: Назад
-        Button(
-            modifier = Modifier
-                .padding(top = 310.dp)
-                .align(Alignment.Center),
-            onClick = navigateBack
+        // Кнопки
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = "Назад", fontSize = 30.sp)
+            Button(
+                onClick = navigateBack,
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.outlineVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
+                Text(text = "Назад", fontSize = 18.sp)
+            }
+
+            Button(
+                onClick = {
+                    if (username.isBlank()) {
+                        result = "❗ Введите имя пользователя"
+                        return@Button                    }
+
+                    try {
+                        val command = mutableListOf("net", "user", username)
+                        if (password.isNotBlank()) {
+                            command.add(password)
+                        }
+                        command.add("/add")
+                        val process = ProcessBuilder(command)
+                            .redirectErrorStream(true)
+                            .start()
+
+                        val exitCode = process.waitFor()
+                        val output = process.inputStream.bufferedReader().readText()
+
+                        if (exitCode == 0) {
+                            result = "✅ Пользователь '$username' успешно создан!"
+                        } else {
+                            result = if (output.contains("уже существует"))
+                                "⚠️ Пользователь '$username' уже существует"
+                            else
+                                "❌ Ошибка: $exitCode\n$output.take(200)"
+                        }
+                    } catch (e: Exception) {
+                        result = "❌ Ошибка выполнения: ${e.message}"
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(text = "Создать", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            }
         }
 
         // Результат
         if (result.isNotEmpty()) {
-            Text(
-                text = result,
-                color = when {
-                    result.startsWith("✅") -> Color.Green
-                    result.startsWith("⚠️") -> Color.Yellow
-                    result.startsWith("❌") || result.startsWith("❗") -> Color.Red
-                    else -> Color.Black
-                },
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(16.dp)
-            )
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = when {
+                    result.startsWith("✅") -> CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                    result.startsWith("⚠️") -> CardDefaults.cardColors(
+                        //containerColor = MaterialTheme.colorScheme.warningContainer,
+                        //contentColor = MaterialTheme.colorScheme.onWarningContainer
+                    )
+                    else -> CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                    )
+                }
+            ) {
+                Text(
+                    text = result,
+                    modifier = Modifier.padding(16.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
         }
     }
 }

@@ -36,6 +36,16 @@ kotlin {
     }
 }
 
+//tasks.register<Jar>("createJar") {
+//    archiveBaseName.set("UserManager")
+//    //from(configurations.runtimeClasspath.get().resolvedConfiguration.files.map { if (it.isDirectory) it else zipTree(it) })
+//    from(configurations.runtimeClasspath.get().resolvedConfiguration.files.map { if (it.isDirectory) it else zipTree(it) })
+//    into("lib")
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//    manifest {
+//        attributes["Main-Class"] = "com.crepo.usermanager.MainKt"
+//    }
+//}
 
 compose.desktop {
     application {
@@ -45,7 +55,7 @@ compose.desktop {
             targetFormats(TargetFormat.Exe)
             //targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.crepo.updated_user_manager"
-            packageVersion = "1.0.0"
+            packageVersion = "0.1.0"
 
             windows {
                 menuGroup = "User Manager"
