@@ -1,5 +1,6 @@
 package org.crepo.updated_user_manager
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,6 +17,8 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import java.awt.Color
 import java.lang.ProcessBuilder
+import java.nio.charset.Charset
+import java.util.Locale
 
 @Composable
 fun UI3_1(navigateBack: () -> Unit) {
@@ -25,19 +28,24 @@ fun UI3_1(navigateBack: () -> Unit) {
     var confirmPassword by remember { mutableStateOf("") }
     var useEmptyPassword by remember { mutableStateOf(false) }
     var result by remember { mutableStateOf("") }
+    val charset = if (Locale.getDefault().language == "ru")
+        Charset.forName("CP866")
+    else
+        Charset.forName("UTF-8")
 
     val navigator = LocalNavigator.current ?: return
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Заголовок
         Text(
-            text = "Изменение пароля",
+            text = StringResources.getString("ui_changePassword_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Start)
         )
@@ -46,7 +54,7 @@ fun UI3_1(navigateBack: () -> Unit) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Имя пользователя") },
+            label = { Text(StringResources.getString("ui_changePassword_userName_title")) },
             placeholder = { Text("user1") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -63,7 +71,7 @@ fun UI3_1(navigateBack: () -> Unit) {
                 onCheckedChange = { useEmptyPassword = it }
             )
             Text(
-                text = "Установить пустой пароль",
+                text = StringResources.getString("ui_changePassword_setBlackPasswordOption"),
                 style = MaterialTheme.typography.bodyLarge
             )
         }
@@ -74,7 +82,7 @@ fun UI3_1(navigateBack: () -> Unit) {
         OutlinedTextField(
             value = newPassword,
             onValueChange = { newPassword = it },
-            label = { Text("Новый пароль") },
+            label = { Text(StringResources.getString("ui_changePassword_newPassword_title")) },
             placeholder = { Text("••••••") },
             visualTransformation = if (newPassword.isEmpty()) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -83,7 +91,7 @@ fun UI3_1(navigateBack: () -> Unit) {
             enabled = isPasswordFieldEnabled,
             supportingText = {
                 if (!isPasswordFieldEnabled) {
-                    Text("Поле отключено", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(StringResources.getString("ui_changePassword_newPassword_disables"), color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         )
@@ -92,7 +100,7 @@ fun UI3_1(navigateBack: () -> Unit) {
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
-            label = { Text("Подтвердите пароль") },
+            label = { Text(StringResources.getString("ui_changePassword_confirmPassword_title")) },
             placeholder = { Text("••••••") },
             visualTransformation = if (confirmPassword.isEmpty()) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -108,9 +116,9 @@ fun UI3_1(navigateBack: () -> Unit) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Text(
-                text = "💡 Совет:\n" +
-                        "• При установке пустого пароля вход будет без защиты\n" +
-                        "• Убедитесь, что имя пользователя введено правильно",
+                text = StringResources.getString("ui_changePassword_hints_title") +
+                        StringResources.getString("ui_changePassword_hints_1") +
+                        StringResources.getString("ui_changePassword_hints_2"),
                 modifier = Modifier.padding(12.dp),
                 style = MaterialTheme.typography.bodySmall
             )
@@ -129,13 +137,13 @@ fun UI3_1(navigateBack: () -> Unit) {
                     contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
-                Text(text = "Назад", fontSize = 18.sp)
+                Text(text = StringResources.getString("ui_changePassword_back"), fontSize = 18.sp)
             }
 
             Button(
                 onClick = {
                     if (username.isBlank()) {
-                        result = "❗ Введите имя пользователя"
+                        result = StringResources.getString("ui_changePassword_error_noName")
                         return@Button
                     }
 
@@ -148,22 +156,30 @@ fun UI3_1(navigateBack: () -> Unit) {
 
                             val exitCode = process.waitFor()
                             if (exitCode == 0) {
-                                result = "✅ Пароль пользователя '$username' очищен (пустой)"
+                                result = StringResources.getString("ui_changePassword_success")
+                                // Логируем успешную установку пустого пароля
+                                Logger.info("Empty password set for user: $username")
                             } else {
-                                val output = process.inputStream.bufferedReader().readText()
-                                result = "❌ Ошибка: $exitCode\n$output.take(200)"
+                                val outputBytes = process.inputStream.readBytes()
+                                val output = String(outputBytes, Charset.forName("CP866"))
+
+                                result = StringResources.getString("ui_changePassword_errorTake200", exitCode, output.take(200)) + exitCode + "\n" + output.take(200)
+                                // Логируем неудачную попытку установки пустого пароля
+                                Logger.warning("Failed to set empty password for user '$username': $output")
                             }
                         } catch (e: Exception) {
-                            result = "❌ Ошибка: ${e.message}"
+                            result = StringResources.getString("ui_changePassword_error")
+                            // Логируем исключение
+                            Logger.error("Exception during empty password setting", e)
                         }
                     } else {
                         // Проверка паролей
                         if (newPassword != confirmPassword) {
-                            result = "❗ Пароли не совпадают"
+                            result = StringResources.getString("ui_changePassword_error_passwordsDoNotTheSame")
                             return@Button
                         }
                         if (newPassword.isBlank()) {
-                            result = "❗ Пароль не может быть пустым"
+                            result = StringResources.getString("ui_changePassword_error_passwordsIsBlank")
                             return@Button
                         }
 
@@ -174,23 +190,30 @@ fun UI3_1(navigateBack: () -> Unit) {
 
                             val exitCode = process.waitFor()
                             if (exitCode == 0) {
-                                result = "✅ Пароль пользователя '$username' изменён"
+                                result = StringResources.getString("ui_changePassword_success_changed")
+                                // Логируем успешное изменение пароля
+                                Logger.info("Password changed for user: $username")
                             } else {
                                 val output = process.inputStream.bufferedReader().readText()
-                                result = if (output.contains("не существует"))
-                                    "❌ Пользователь '$username' не найден"
+                                result = if (output.contains(StringResources.getString("ui_changePassword_error_notExist")))
+                                    StringResources.getString("ui_changePassword_error_userNotFound")
                                 else
-                                    "❌ Ошибка: $exitCode\n$output.take(200)"
+                                    StringResources.getString("ui_changePassword_errorTake200")
+
+                                // Логируем неудачное изменение пароля
+                                Logger.warning("Failed to change password for user '$username': $output")
                             }
                         } catch (e: Exception) {
-                            result = "❌ Ошибка выполнения: ${e.message}"
+                            result = StringResources.getString("ui_changePassword_error_execution")
+                            // Логируем исключение
+                            Logger.error("Exception during password change", e)
                         }
                     }
                 },
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = if (useEmptyPassword) "Установить пустой" else "Изменить",
+                    text = if (useEmptyPassword) StringResources.getString("ui_changePassword_setBlank_title") else StringResources.getString("ui_changePassword_change_title"),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )

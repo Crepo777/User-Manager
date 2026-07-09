@@ -1,8 +1,8 @@
 package org.crepo.updated_user_manager
 
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -18,23 +18,30 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import java.lang.ProcessBuilder
+import java.nio.charset.Charset
+import java.util.Locale
 
 @Composable
 fun UI2_1(navigateBack: () -> Unit) {
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
+    val charset = if (Locale.getDefault().language == "ru")
+        Charset.forName("CP866")
+    else
+        Charset.forName("UTF-8")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Заголовок
         Text(
-            text = "Создание пользователя",
+            text = StringResources.getString("ui_createUser_title_create"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Start)
         )
@@ -43,12 +50,12 @@ fun UI2_1(navigateBack: () -> Unit) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Имя пользователя") },
+            label = { Text(StringResources.getString("ui_createUser_hint_username")) },
             placeholder = { Text("user1") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             supportingText = {
-                Text("Введите имя нового пользователя")
+                Text(StringResources.getString("ui_createUser_enter_new_username"))
             }
         )
 
@@ -56,14 +63,14 @@ fun UI2_1(navigateBack: () -> Unit) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Пароль") },
+            label = { Text(StringResources.getString("ui_createUser_enter_new_username")) },
             placeholder = { Text("••••••") },
             visualTransformation = if (password.isEmpty()) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             supportingText = {
-                Text("Оставьте пустым, если не хотите задавать пароль")
+                Text(StringResources.getString("ui_createUser_leave_empty_for_no_password"))
             }
         )
 
@@ -74,9 +81,8 @@ fun UI2_1(navigateBack: () -> Unit) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Text(
-                text = "⚠️ ВНИМАНИЕ:\n" +
-                        "• Приложение должно запускаться от имени администратора\n" +
-                        "• Если пользователь уже существует — будет ошибка",
+                text = StringResources.getString("ui_createUser_warning_admin_required") + "\n" +
+                        StringResources.getString("ui_createUser_warning_user_exists"),
                 modifier = Modifier.padding(12.dp),
                 style = MaterialTheme.typography.bodySmall
             )
@@ -95,14 +101,15 @@ fun UI2_1(navigateBack: () -> Unit) {
                     contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
-                Text(text = "Назад", fontSize = 18.sp)
+                Text(text = StringResources.getString("ui_createUser_btn_back"), fontSize = 18.sp)
             }
 
             Button(
                 onClick = {
                     if (username.isBlank()) {
-                        result = "❗ Введите имя пользователя"
-                        return@Button                    }
+                        result = StringResources.getString("ui_createUser_error_username_required")
+                        return@Button
+                    }
 
                     try {
                         val command = mutableListOf("net", "user", username)
@@ -110,28 +117,45 @@ fun UI2_1(navigateBack: () -> Unit) {
                             command.add(password)
                         }
                         command.add("/add")
+
                         val process = ProcessBuilder(command)
                             .redirectErrorStream(true)
                             .start()
 
                         val exitCode = process.waitFor()
-                        val output = process.inputStream.bufferedReader().readText()
+                        //val systemCharset = Charset.defaultCharset()
+                        val outputBytes = process.inputStream.readBytes()
+                        val output = String(outputBytes, Charset.forName("CP866"))
+                        //val output = EncodingUtils.getConsoleOutput(process)
 
                         if (exitCode == 0) {
-                            result = "✅ Пользователь '$username' успешно создан!"
+                            result = StringResources.getString("ui_createUser_success_user_created", username)
+                            // Логируем успешное создание пользователя
+                            Logger.info("User created: $username")
                         } else {
-                            result = if (output.contains("уже существует"))
-                                "⚠️ Пользователь '$username' уже существует"
-                            else
-                                "❌ Ошибка: $exitCode\n$output.take(200)"
+                            if (output.contains("уже существует") || output.contains("already exists")) {
+                                result = StringResources.getString("ui_createUser_warning_user_exists_1", username)
+                                // Логируем предупреждение о существующем пользователе
+                                Logger.warning("User already exists: $username")
+                            } else {
+                                result = StringResources.getString("ui_createUser_error_code", exitCode, output.take(100))
+                                // Логируем ошибку создания пользователя
+                                Logger.error("Error creating user '$username': exit code $exitCode, output: ${output.take(100)}")
+                            }
                         }
                     } catch (e: Exception) {
-                        result = "❌ Ошибка выполнения: ${e.message}"
+                        result = StringResources.getString("ui_createUser_error_execution", e.message ?: "Unknown error")
+                        // Логируем исключение
+                        Logger.error("Exception during user creation", e)
                     }
                 },
                 modifier = Modifier.weight(1f)
             ) {
-                Text(text = "Создать", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = StringResources.getString("ui_createUser_btn_create"),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
@@ -146,11 +170,12 @@ fun UI2_1(navigateBack: () -> Unit) {
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     result.startsWith("⚠️") -> CardDefaults.cardColors(
-                        //containerColor = MaterialTheme.colorScheme.warningContainer,
-                        //contentColor = MaterialTheme.colorScheme.onWarningContainer
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     else -> CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,                        contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer
                     )
                 }
             ) {
@@ -161,13 +186,5 @@ fun UI2_1(navigateBack: () -> Unit) {
                 )
             }
         }
-    }
-}
-
-@Preview(widthDp = 1920, heightDp = 1080)
-@Composable
-private fun PreviewUI2_1() {
-    MaterialTheme {
-        UI2_1(navigateBack = {})
     }
 }

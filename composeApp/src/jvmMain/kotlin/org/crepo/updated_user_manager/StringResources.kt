@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets
 
 object StringResources {
     fun getString(key: String): String {
-        val locale = AppLanguage.current
+        val locale = LanguageManager.currentLocale
         return try {
             val bundle = ResourceBundle.getBundle("strings.strings", locale, UTF8Control())
             bundle.getString(key)

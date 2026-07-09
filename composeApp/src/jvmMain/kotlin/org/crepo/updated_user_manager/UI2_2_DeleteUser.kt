@@ -1,5 +1,6 @@
 package org.crepo.updated_user_manager
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -9,8 +10,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+//import androidx.window.core.Logger
 import cafe.adriel.voyager.navigator.LocalNavigator
+import org.crepo.updated_user_manager.Logger
 import java.lang.ProcessBuilder
+import java.nio.charset.Charset
+import java.util.Locale
 
 @Composable
 fun UI2_2(navigateBack: () -> Unit) {
@@ -23,13 +28,14 @@ fun UI2_2(navigateBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         // Заголовок
         Text(
-            text = "Удаление пользователя",
+            text = StringResources.getString("ui_deleteUser_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Start)
         )
@@ -45,13 +51,13 @@ fun UI2_2(navigateBack: () -> Unit) {
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = "⚠️ ВНИМАНИЕ!",
+                    text = StringResources.getString("ui_deleteUser_warning_title"),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onError
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Это необратимое действие. Будут удалены:\n• Учётная запись\n• Папка пользователя\n• Все файлы в ней",
+                    text = StringResources.getString("ui_deleteUser_warning_hint"),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.align(Alignment.Start)
                 )
@@ -62,7 +68,7 @@ fun UI2_2(navigateBack: () -> Unit) {
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
-            label = { Text("Имя пользователя") },
+            label = { Text(StringResources.getString("ui_deleteUser_userName_title")) },
             placeholder = { Text("user1") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
@@ -81,13 +87,13 @@ fun UI2_2(navigateBack: () -> Unit) {
                     contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
-                Text(text = "Назад", fontSize = 18.sp)
+                Text(text = StringResources.getString("ui_deleteUser_back"), fontSize = 18.sp)
             }
 
             Button(
                 onClick = {
                     if (username.isBlank()) {
-                        result = "❗ Введите имя пользователя"
+                        result = StringResources.getString("ui_deleteUser_error_noName")
                     } else {
                         showDeleteDialog = true // Показать диалог
                     }
@@ -98,7 +104,7 @@ fun UI2_2(navigateBack: () -> Unit) {
                     contentColor = MaterialTheme.colorScheme.onError
                 )
             ) {
-                Text(text = "Удалить", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(text = StringResources.getString("ui_deleteUser_confirm"), fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -137,14 +143,14 @@ fun UI2_2(navigateBack: () -> Unit) {
             onDismissRequest = { showDeleteDialog = false },
             title = {
                 Text(
-                    text = "Подтвердите удаление",
+                    text = StringResources.getString("ui_deleteUser_confirmWindow_title"),
                     style = MaterialTheme.typography.titleLarge
                 )
             },
             text = {
                 Text(
-                    text = "Вы действительно хотите удалить пользователя '$username'?\n" +
-                            "Все его данные будут безвозвратно потеряны.",
+                    text = StringResources.getString("ui_deleteUser_confirmWindow_hint_1") +
+                            StringResources.getString("ui_deleteUser_confirmWindow_hint_2"),
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
@@ -159,12 +165,12 @@ fun UI2_2(navigateBack: () -> Unit) {
                         contentColor = MaterialTheme.colorScheme.onError
                     )
                 ) {
-                    Text("Удалить")
+                    Text(StringResources.getString("ui_deleteUser_confirmWindow_deleteButton"))
                 }
             },
             dismissButton = {
                 Button(onClick = { showDeleteDialog = false }) {
-                    Text("Отмена")
+                    Text(StringResources.getString("ui_deleteUser_confirmWindow_cancelButton"))
                 }
             }
         )
@@ -173,23 +179,36 @@ fun UI2_2(navigateBack: () -> Unit) {
 
 // Функция выполнения удаления
 private fun executeDelete(username: String, onResult: (String) -> Unit) {
+    // В начало функции
+    val charset = if (Locale.getDefault().language == "ru")
+        Charset.forName("CP866")
+    else
+        Charset.forName("UTF-8")
+
     try {
         // 1. Удаляем учётную запись
         val process1 = ProcessBuilder("net", "user", username, "/delete")
             .redirectErrorStream(true)
             .start()
-
         val exitCode1 = process1.waitFor()
-        val output1 = process1.inputStream.bufferedReader().readText()
+
+        // Читаем вывод в OEM-кодировке (CP866)
+        val outputBytes1 = process1.inputStream.readBytes()
+        val output1 = String(outputBytes1, Charset.forName("CP866"))
 
         if (exitCode1 != 0) {
-            onResult(
-                if (output1.contains("не существует"))
-                    "❌ Пользователь '$username' не найден"
-                else
-                    "❌ Ошибка удаления: код $exitCode1"
-            )
+            val errorMessage = if (output1.contains(StringResources.getString("ui_deleteUser_error_notExist_0")))
+                StringResources.getString("ui_deleteUser_error_notExist")
+            else
+                StringResources.getString("ui_deleteUser_error_code", exitCode1, output1.take(100)) + exitCode1 + "\n" + output1.take(100)
+
+            // Логируем предупреждение об ошибке удаления учетной записи
+            Logger.warning("Failed to delete user: $username, error: $output1")
+            onResult(errorMessage)
             return
+        } else {
+            // Логируем успешное удаление учетной записи
+            Logger.info("User account deleted: $username")
         }
 
         // 2. Удаляем папку пользователя
@@ -198,16 +217,24 @@ private fun executeDelete(username: String, onResult: (String) -> Unit) {
         val process2 = ProcessBuilder("cmd", "/c", "rmdir", "/s", "/q", userFolder)
             .redirectErrorStream(true)
             .start()
-
         val exitCode2 = process2.waitFor()
 
+        // Читаем вывод в OEM-кодировке (CP866)
+        val outputBytes2 = process2.inputStream.readBytes()
+        val output2 = String(outputBytes2, Charset.forName("CP866"))
+
         if (exitCode2 == 0) {
-            onResult("✅ Пользователь '$username' и его папка успешно удалены")
+            // Логируем успешное удаление папки
+            Logger.info("User folder deleted: $username")
+            onResult(StringResources.getString("ui_deleteUser_fullSuccess_title"))
         } else {
-            val output2 = process2.inputStream.bufferedReader().readText()
-            onResult("⚠️ Учётная запись удалена, но папку удалить не удалось:\n$output2")
+            // Логируем предупреждение об ошибке удаления папки
+            Logger.warning("Failed to delete user folder: $username, error: $output2")
+            onResult(StringResources.getString("ui_deleteUser_halfSuccess_title"))
         }
     } catch (e: Exception) {
-        onResult("❌ Ошибка: ${e.message}")
+        // Логируем исключение
+        Logger.error("Exception during user deletion", e)
+        onResult(StringResources.getString("ui_deleteUser_error"))
     }
 }

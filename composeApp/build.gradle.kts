@@ -25,6 +25,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation("cafe.adriel.voyager:voyager-navigator:1.0.0")
             implementation("cafe.adriel.voyager:voyager-screenmodel:1.0.0")
+            implementation(compose.materialIconsExtended)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -32,6 +33,8 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.androidx.lifecycle.common.jvm)
+            //implementation(libs.androidx.window)
         }
     }
 }
@@ -55,7 +58,7 @@ compose.desktop {
             targetFormats(TargetFormat.Exe)
             //targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.crepo.updated_user_manager"
-            packageVersion = "0.1.0"
+            packageVersion = "0.1.24"
 
             windows {
                 menuGroup = "User Manager"
