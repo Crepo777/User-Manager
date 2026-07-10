@@ -63,7 +63,7 @@ fun UI2_1(navigateBack: () -> Unit) {
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text(StringResources.getString("ui_createUser_enter_new_username")) },
+            label = { Text(StringResources.getString("ui_createUser_hint_password")) },
             placeholder = { Text("••••••") },
             visualTransformation = if (password.isEmpty()) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

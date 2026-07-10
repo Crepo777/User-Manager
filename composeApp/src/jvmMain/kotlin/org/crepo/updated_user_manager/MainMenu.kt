@@ -187,7 +187,7 @@ fun MainMenu() {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = "v1.0.0 | © 2026 Крайнов Иван",
+                text = "v1.0.2 | © 2026 Крайнов Иван",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -390,7 +390,7 @@ fun MainMenu() {
                         onClick = { openSystemTool("devmgmt.msc") }
                     )
                     SystemToolItem(
-                        icon = "\uD83D\uDD25",
+                        icon = "\uD83D\uDD25f",
                         title = StringResources.getString("ui_mainMenu_utilities_wf_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_wf_hint"),
                         onClick = { openSystemTool("wf.msc") }
