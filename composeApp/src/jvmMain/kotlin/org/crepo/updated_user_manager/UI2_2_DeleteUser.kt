@@ -1,5 +1,6 @@
 package org.crepo.updated_user_manager
 
+//import androidx.window.core.Logger
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,12 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-//import androidx.window.core.Logger
 import cafe.adriel.voyager.navigator.LocalNavigator
-import org.crepo.updated_user_manager.Logger
-import java.lang.ProcessBuilder
 import java.nio.charset.Charset
-import java.util.Locale
+import java.util.*
 
 @Composable
 fun UI2_2(navigateBack: () -> Unit) {
@@ -119,8 +117,8 @@ fun UI2_2(navigateBack: () -> Unit) {
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     result.startsWith("⚠\uFE0F") -> CardDefaults.cardColors(
-                        //containerColor = MaterialTheme.colorScheme.warningContainer,
-                        //contentColor = MaterialTheme.colorScheme.onWarningContainer
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     else -> CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -223,7 +221,7 @@ private fun executeDelete(username: String, onResult: (String) -> Unit) {
             onResult(StringResources.getString("ui_deleteUser_fullSuccess_title"))
         } else {
             Logger.warning("Failed to delete user folder: $username, error: $output2")
-            onResult(StringResources.getString("ui_deleteUser_halfSuccess_title"))
+            onResult(StringResources.getString("ui_deleteUser_halfSuccess_title") + output2)
         }
     } catch (e: Exception) {
         Logger.error("Exception during user deletion", e)

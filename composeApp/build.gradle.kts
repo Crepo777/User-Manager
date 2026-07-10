@@ -58,12 +58,12 @@ compose.desktop {
             targetFormats(TargetFormat.Exe)
             //targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.crepo.updated_user_manager"
-            packageVersion = "1.0.0"
+            packageVersion = "1.0.1"
 
             windows {
                 menuGroup = "User Manager"
                 upgradeUuid = "c20bdfc7-d38a-4161-a93f-31c169c18a9e"
-                //exePackageIcon = null  // Можно добавить иконку (путь к .ico)
+                //exePackageIcon = null
             }
         }
     }
