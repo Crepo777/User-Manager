@@ -31,7 +31,7 @@ fun ViewPermissionsScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_viewPermissions_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -45,7 +45,7 @@ fun ViewPermissionsScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поле ввода пути
+        //Ввод пути
         OutlinedTextField(
             value = path,
             onValueChange = { path = it },
@@ -66,7 +66,7 @@ fun ViewPermissionsScreenContent(navigateBack: () -> Unit) {
             )
         )
 
-        // Результат операции
+        //Результат
         if (result.isNotBlank()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -80,7 +80,7 @@ fun ViewPermissionsScreenContent(navigateBack: () -> Unit) {
             }
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -123,7 +123,6 @@ private fun executeViewPermissions(path: String, onResult: (String) -> Unit) {
         Charset.forName("UTF-8")
 
     try {
-        // Проверяем существование пути
         val file = File(path)
         if (!file.exists()) {
             onResult(StringResources.getString("ui_viewPermissions_error_path_not_exist", path))
@@ -131,20 +130,17 @@ private fun executeViewPermissions(path: String, onResult: (String) -> Unit) {
             return
         }
 
-        // Выполняем команду icacls для просмотра прав
         val process = ProcessBuilder("icacls", path)
             .redirectErrorStream(true)
             .start()
 
-        // Читаем вывод в OEM-кодировке (CP866)
         val outputBytes = process.inputStream.readBytes()
         val output = String(outputBytes, Charset.forName("CP866"))
 
         val exitCode = process.waitFor()
 
         if (exitCode == 0) {
-            // Форматируем вывод для лучшей читаемости
-            val formattedOutput = "📋 $output".replace("\n", "\n• ")
+            val formattedOutput = "\uD83D\uDCCB $output".replace("\n", "\n• ")
             onResult(formattedOutput)
             Logger.info("Permissions viewed for path: $path")
         } else {
@@ -164,6 +160,6 @@ private fun executeViewPermissions(path: String, onResult: (String) -> Unit) {
 }
 
 private fun formatPermissionsOutput(output: String): String {
-    return "📋 $output".replace("\n", "\n• ")
+    return "\uD83D\uDCCB $output".replace("\n", "\n• ")
 }
 

@@ -1,6 +1,5 @@
 package org.crepo.updated_user_manager
 
-// SettingsScreen.kt
 
 import org.crepo.updated_user_manager.Logger
 import androidx.compose.foundation.background
@@ -31,20 +30,18 @@ fun SettingsScreenContent() {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_settings_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
         )
 
-        // Описание
         Text(
             text = StringResources.getString("ui_settings_hint"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        // Карточка с логами
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp)
@@ -57,7 +54,6 @@ fun SettingsScreenContent() {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Кнопка открытия папки с логами
                 Button(
                     onClick = {
                         val logDir = File(System.getProperty("user.home"), ".usermanager")
@@ -76,12 +72,11 @@ fun SettingsScreenContent() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Кнопка очистки логов
                 Button(
                     onClick = {
                         val logFile = File(System.getProperty("user.home"), ".usermanager/usermanager.log")
                         if (logFile.exists()) {
-                            logFile.writeText("") // Очищаем файл
+                            logFile.writeText("") //Очищаем файл
                             Logger.info("Log file cleared by user")
                         }
                     },
@@ -98,14 +93,12 @@ fun SettingsScreenContent() {
                     )
                 }
 
-                // Кнопка экспорта логов
                 Button(
                     onClick = {
                         val csv = Logger.exportToCsv()
                         val exportFile = File(System.getProperty("user.home"), "usermanager_logs.csv")
                         exportFile.writeText("Timestamp,Level,Message\n$csv")
 
-                        // Открываем папку с экспортированным файлом
                         ProcessBuilder("explorer", "/select,${exportFile.absolutePath}").start()
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -119,7 +112,6 @@ fun SettingsScreenContent() {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Информация о логах
                 val logFile = File(System.getProperty("user.home"), ".usermanager/usermanager.log")
                 val logSize = if (logFile.exists()) logFile.length() / 1024 else 0
 
@@ -131,7 +123,6 @@ fun SettingsScreenContent() {
             }
         }
 
-        // Кнопка "Назад"
         Button(
             onClick = { navigator.pop() },
             modifier = Modifier

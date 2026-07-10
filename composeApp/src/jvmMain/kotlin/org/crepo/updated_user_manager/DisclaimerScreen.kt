@@ -1,6 +1,5 @@
 package org.crepo.updated_user_manager
 
-// DisclaimerScreen.kt
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -25,7 +24,6 @@ import java.util.Locale
 fun DisclaimerScreenContent() {
     val navigator = LocalNavigator.current ?: return
 
-    // Состояние для отслеживания текущего языка
     val currentLocale by remember { derivedStateOf { LanguageManager.currentLocale } }
 
     Column(
@@ -37,7 +35,7 @@ fun DisclaimerScreenContent() {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_disclaimer_title"),
             style = MaterialTheme.typography.headlineLarge.copy(
@@ -47,14 +45,14 @@ fun DisclaimerScreenContent() {
             textAlign = TextAlign.Center
         )
 
-        // Основной текст
+        //Основной текст
         Text(
             text = StringResources.getString("ui_disclaimer_text"),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
 
-        // Важное примечание
+        //Важное примечание
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -70,7 +68,7 @@ fun DisclaimerScreenContent() {
             )
         }
 
-        // Кнопки выбора языка
+        //Кнопки выбора языка
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -88,7 +86,7 @@ fun DisclaimerScreenContent() {
             )
         }
 
-        // Кнопка принятия
+        //Кнопка принятия
         Button(
             onClick = {
                 AppConfig.saveDisclaimerAccepted()
@@ -106,14 +104,14 @@ fun DisclaimerScreenContent() {
         }
     }
     //Row(
-    //    horizontalArrangement = Arrangement.SpaceBetween,
-    //    modifier = Modifier.fillMaxWidth()
+    //   horizontalArrangement = Arrangement.SpaceBetween,
+    //   modifier = Modifier.fillMaxWidth()
     //) {
-    //    Text(
-    //        text = "v1.0.0 | © 2026 Крайнов Иван",
-    //        style = MaterialTheme.typography.labelSmall,
-    //        color = MaterialTheme.colorScheme.onSurfaceVariant
-    //    )}
+    //   Text(
+    //       text = "v1.0.0 | © 2026 Крайнов Иван",
+    //       style = MaterialTheme.typography.labelSmall,
+    //       color = MaterialTheme.colorScheme.onSurfaceVariant
+    //   )}
 }
 
 @Composable

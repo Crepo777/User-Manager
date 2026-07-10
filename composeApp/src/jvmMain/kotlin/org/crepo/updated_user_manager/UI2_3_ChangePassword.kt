@@ -22,7 +22,7 @@ import java.util.Locale
 
 @Composable
 fun UI3_1(navigateBack: () -> Unit) {
-    //val warningContainer = Color(0x33FF6B6B) // полупрозрачный красный
+    //val warningContainer = Color(0x33FF6B6B)
     var username by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -43,14 +43,14 @@ fun UI3_1(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_changePassword_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Start)
         )
 
-        // Поле: Имя пользователя
+        //Имя пользователя
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -60,7 +60,7 @@ fun UI3_1(navigateBack: () -> Unit) {
             singleLine = true
         )
 
-        // Чекбокс: Пустой пароль
+        //Пустой пароль
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -76,7 +76,7 @@ fun UI3_1(navigateBack: () -> Unit) {
             )
         }
 
-        // Поле: Новый пароль (активно только если не выбран пустой пароль)
+        //Новый пароль
         val isPasswordFieldEnabled = !useEmptyPassword
 
         OutlinedTextField(
@@ -96,7 +96,7 @@ fun UI3_1(navigateBack: () -> Unit) {
             }
         )
 
-        // Подтверждение пароля
+        //Подтверждение пароля
         OutlinedTextField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -109,7 +109,7 @@ fun UI3_1(navigateBack: () -> Unit) {
             enabled = isPasswordFieldEnabled
         )
 
-        // Примечание
+        //Примечание
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
@@ -124,7 +124,7 @@ fun UI3_1(navigateBack: () -> Unit) {
             )
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -148,7 +148,7 @@ fun UI3_1(navigateBack: () -> Unit) {
                     }
 
                     if (useEmptyPassword) {
-                        // Устанавливаем пустой пароль
+                        //Пустой пароль
                         try {
                             val process = ProcessBuilder("net", "user", username, "")
                                 .redirectErrorStream(true)
@@ -157,23 +157,20 @@ fun UI3_1(navigateBack: () -> Unit) {
                             val exitCode = process.waitFor()
                             if (exitCode == 0) {
                                 result = StringResources.getString("ui_changePassword_success")
-                                // Логируем успешную установку пустого пароля
                                 Logger.info("Empty password set for user: $username")
                             } else {
                                 val outputBytes = process.inputStream.readBytes()
                                 val output = String(outputBytes, Charset.forName("CP866"))
 
                                 result = StringResources.getString("ui_changePassword_errorTake200", exitCode, output.take(200)) + exitCode + "\n" + output.take(200)
-                                // Логируем неудачную попытку установки пустого пароля
                                 Logger.warning("Failed to set empty password for user '$username': $output")
                             }
                         } catch (e: Exception) {
                             result = StringResources.getString("ui_changePassword_error")
-                            // Логируем исключение
                             Logger.error("Exception during empty password setting", e)
                         }
                     } else {
-                        // Проверка паролей
+                        //Проверка паролей
                         if (newPassword != confirmPassword) {
                             result = StringResources.getString("ui_changePassword_error_passwordsDoNotTheSame")
                             return@Button
@@ -191,7 +188,6 @@ fun UI3_1(navigateBack: () -> Unit) {
                             val exitCode = process.waitFor()
                             if (exitCode == 0) {
                                 result = StringResources.getString("ui_changePassword_success_changed")
-                                // Логируем успешное изменение пароля
                                 Logger.info("Password changed for user: $username")
                             } else {
                                 val output = process.inputStream.bufferedReader().readText()
@@ -200,12 +196,10 @@ fun UI3_1(navigateBack: () -> Unit) {
                                 else
                                     StringResources.getString("ui_changePassword_errorTake200")
 
-                                // Логируем неудачное изменение пароля
                                 Logger.warning("Failed to change password for user '$username': $output")
                             }
                         } catch (e: Exception) {
                             result = StringResources.getString("ui_changePassword_error_execution")
-                            // Логируем исключение
                             Logger.error("Exception during password change", e)
                         }
                     }
@@ -220,7 +214,7 @@ fun UI3_1(navigateBack: () -> Unit) {
             }
         }
 
-        // Результат
+        //Результат
         if (result.isNotEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -230,9 +224,9 @@ fun UI3_1(navigateBack: () -> Unit) {
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    result.startsWith("⚠️") -> CardDefaults.cardColors(
-                        //containerColor = MaterialTheme.colorScheme.warningContainer,
-                        //contentColor = MaterialTheme.colorScheme.onWarningContainer
+                    result.startsWith("⚠\uFE0F") -> CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     else -> CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.errorContainer,

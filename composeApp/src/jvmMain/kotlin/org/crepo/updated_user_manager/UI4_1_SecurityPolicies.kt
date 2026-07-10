@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,25 +22,34 @@ import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import java.io.File
 import java.nio.charset.Charset
+import java.util.concurrent.TimeUnit
 
 @Composable
 fun UI4_1_SecurityPolicyScreenContent(navigateBack: () -> Unit) {
-    // Состояние экрана
-    var username by remember { mutableStateOf("") }
-    var loading by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    // Политики безопасности
     var minPasswordLength by remember { mutableStateOf(8) }
     var passwordComplexity by remember { mutableStateOf(true) }
     var accountLockoutThreshold by remember { mutableStateOf(5) }
     var passwordExpiration by remember { mutableStateOf(90) }
     var historyCount by remember { mutableStateOf(5) }
 
-    // Загружаем текущие политики при вводе имени пользователя
-    val policiesLoaded = remember { mutableStateOf(false) }
-
-
+    LaunchedEffect(Unit) {
+        loadSystemPolicies { policies, err ->
+            if (err != null) {
+                error = err
+            } else {
+                error = null
+                minPasswordLength = policies.minPasswordLength
+                passwordComplexity = policies.passwordComplexity
+                accountLockoutThreshold = policies.accountLockoutThreshold
+                passwordExpiration = policies.passwordExpiration
+                historyCount = policies.historyCount
+            }
+            loading = false
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -48,21 +59,20 @@ fun UI4_1_SecurityPolicyScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
-            text = StringResources.getString("ui_securityPolicy_title"),
+            text = StringResources.getString("ui_securityPolicy_system_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
         )
 
         Text(
-            text = StringResources.getString("ui_securityPolicy_subtitle"),
+            text = StringResources.getString("ui_securityPolicy_system_subtitle"),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поле ввода имени пользователя
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -70,88 +80,25 @@ fun UI4_1_SecurityPolicyScreenContent(navigateBack: () -> Unit) {
             shape = RoundedCornerShape(12.dp)
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = StringResources.getString("ui_securityPolicy_username"),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    text = StringResources.getString("ui_securityPolicy_explanation"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
                 )
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    OutlinedTextField(
-                        value = username,
-                        onValueChange = { username = it },
-                        label = { Text(StringResources.getString("ui_securityPolicy_username_label")) },
-                        modifier = Modifier.weight(1f),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                if (username.isNotBlank()) {
-                                    loadUserPolicies(username) { policies, err ->
-                                        if (err != null) {
-                                            error = err
-                                            policiesLoaded.value = false
-                                        } else {
-                                            error = null
-                                            policiesLoaded.value = true
-                                            minPasswordLength = policies.minPasswordLength
-                                            passwordComplexity = policies.passwordComplexity
-                                            accountLockoutThreshold = policies.accountLockoutThreshold
-                                            passwordExpiration = policies.passwordExpiration
-                                            historyCount = policies.historyCount
-                                        }
-                                    }
-                                }
-                            }
-                        )
-                    )
+                Spacer(modifier = Modifier.height(8.dp))
 
-                    Button(
-                        onClick = {
-                            if (username.isNotBlank()) {
-                                loadUserPolicies(username) { policies, err ->
-                                    if (err != null) {
-                                        error = err
-                                        policiesLoaded.value = false
-                                    } else {
-                                        error = null
-                                        policiesLoaded.value = true
-                                        minPasswordLength = policies.minPasswordLength
-                                        passwordComplexity = policies.passwordComplexity
-                                        accountLockoutThreshold = policies.accountLockoutThreshold
-                                        passwordExpiration = policies.passwordExpiration
-                                        historyCount = policies.historyCount
-                                    }
-                                }
-                            }
-                        },
-                        modifier = Modifier.height(48.dp)
-                    ) {
-                        Text(StringResources.getString("ui_securityPolicy_load"))
-                    }
-                }
-
-                if (error != null) {
-                    Text(
-                        text = error ?: "",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                Text(
+                    text = StringResources.getString("ui_securityPolicy_explanation_detail"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
-        // Настройки политик
+//Настройки политик
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -159,94 +106,137 @@ fun UI4_1_SecurityPolicyScreenContent(navigateBack: () -> Unit) {
                 .weight(1f),
             shape = RoundedCornerShape(12.dp)
         ) {
+            val scrollState = rememberScrollState()
+
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                modifier = Modifier.padding(16.dp)
             ) {
-                // Заголовок секции
                 Text(
                     text = StringResources.getString("ui_securityPolicy_settings"),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
 
-                // Проверяем, загружены ли политики
-                if (!policiesLoaded.value && username.isNotBlank()) {
-                    Text(
-                        text = StringResources.getString("ui_securityPolicy_loading"),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                    CircularProgressIndicator(
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Divider()
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) {
+                    Column(
                         modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .size(48.dp)
-                    )
-                } else if (username.isNotBlank() && policiesLoaded.value) {
-                    // Поля настроек
-                    SecurityPolicyField(
-                        title = StringResources.getString("ui_securityPolicy_minPasswordLength"),
-                        description = StringResources.getString("ui_securityPolicy_minPasswordLength_desc"),
-                        value = minPasswordLength.toString(),
-                        onValueChange = {
-                            val value = it.toIntOrNull() ?: 0
-                            if (value in 4..128) minPasswordLength = value
-                        },
-                        keyboardType = KeyboardType.Number
-                    )
+                            .fillMaxWidth()
+                            .verticalScroll(scrollState),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        if (loading) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                CircularProgressIndicator()
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = StringResources.getString("ui_securityPolicy_loading"),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else if (error != null) {
+                            Column(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = StringResources.getString("ui_securityPolicy_error_title"),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = error ?: "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        } else {
+                            //Поля настроек
+                            SecurityPolicyField(
+                                title = StringResources.getString("ui_securityPolicy_minPasswordLength"),
+                                description = StringResources.getString("ui_securityPolicy_minPasswordLength_desc"),
+                                value = minPasswordLength.toString(),
+                                onValueChange = {
+                                    val value = it.toIntOrNull() ?: 0
+                                    if (value in 4..128) minPasswordLength = value
+                                },
+                                keyboardType = KeyboardType.Number
+                            )
 
-                    SecurityPolicyToggle(
-                        title = StringResources.getString("ui_securityPolicy_passwordComplexity"),
-                        description = StringResources.getString("ui_securityPolicy_passwordComplexity_desc"),
-                        isChecked = passwordComplexity,
-                        onCheckedChange = { passwordComplexity = it }
-                    )
+                            SecurityPolicyToggle(
+                                title = StringResources.getString("ui_securityPolicy_passwordComplexity"),
+                                description = StringResources.getString("ui_securityPolicy_passwordComplexity_desc"),
+                                isChecked = passwordComplexity,
+                                onCheckedChange = { passwordComplexity = it }
+                            )
 
-                    SecurityPolicyField(
-                        title = StringResources.getString("ui_securityPolicy_accountLockoutThreshold"),
-                        description = StringResources.getString("ui_securityPolicy_accountLockoutThreshold_desc"),
-                        value = accountLockoutThreshold.toString(),
-                        onValueChange = {
-                            val value = it.toIntOrNull() ?: 0
-                            if (value in 0..100) accountLockoutThreshold = value
-                        },
-                        keyboardType = KeyboardType.Number
-                    )
+                            SecurityPolicyField(
+                                title = StringResources.getString("ui_securityPolicy_accountLockoutThreshold"),
+                                description = StringResources.getString("ui_securityPolicy_accountLockoutThreshold_desc"),
+                                value = accountLockoutThreshold.toString(),
+                                onValueChange = {
+                                    val value = it.toIntOrNull() ?: 0
+                                    if (value in 0..100) accountLockoutThreshold = value
+                                },
+                                keyboardType = KeyboardType.Number
+                            )
 
-                    SecurityPolicyField(
-                        title = StringResources.getString("ui_securityPolicy_passwordExpiration"),
-                        description = StringResources.getString("ui_securityPolicy_passwordExpiration_desc"),
-                        value = passwordExpiration.toString(),
-                        onValueChange = {
-                            val value = it.toIntOrNull() ?: 0
-                            if (value in 0..365) passwordExpiration = value
-                        },
-                        keyboardType = KeyboardType.Number
-                    )
+                            SecurityPolicyField(
+                                title = StringResources.getString("ui_securityPolicy_passwordExpiration"),
+                                description = StringResources.getString("ui_securityPolicy_passwordExpiration_desc"),
+                                value = passwordExpiration.toString(),
+                                onValueChange = {
+                                    val value = it.toIntOrNull() ?: 0
+                                    if (value in 0..365) passwordExpiration = value
+                                },
+                                keyboardType = KeyboardType.Number
+                            )
 
-                    SecurityPolicyField(
-                        title = StringResources.getString("ui_securityPolicy_historyCount"),
-                        description = StringResources.getString("ui_securityPolicy_historyCount_desc"),
-                        value = historyCount.toString(),
-                        onValueChange = {
-                            val value = it.toIntOrNull() ?: 0
-                            if (value in 0..24) historyCount = value
-                        },
-                        keyboardType = KeyboardType.Number
-                    )
-                } else {
-                    Text(
-                        text = StringResources.getString("ui_securityPolicy_instructions"),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
+                            SecurityPolicyField(
+                                title = StringResources.getString("ui_securityPolicy_historyCount"),
+                                description = StringResources.getString("ui_securityPolicy_historyCount_desc"),
+                                value = historyCount.toString(),
+                                onValueChange = {
+                                    val value = it.toIntOrNull() ?: 0
+                                    if (value in 0..24) historyCount = value
+                                },
+                                keyboardType = KeyboardType.Number
+                            )
+                        }
+                    }
+
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(scrollState)
                     )
                 }
             }
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -264,20 +254,26 @@ fun UI4_1_SecurityPolicyScreenContent(navigateBack: () -> Unit) {
 
             Button(
                 onClick = {
-                    if (username.isNotBlank() && policiesLoaded.value) {
-                        saveUserPolicies(
-                            username,
-                            minPasswordLength,
-                            passwordComplexity,
-                            accountLockoutThreshold,
-                            passwordExpiration,
-                            historyCount
-                        ) { success, message ->
-                            if (success) {
-                                error = StringResources.getString("ui_securityPolicy_success", username)
-                            } else {
-                                error = message
+                    saveSystemPolicies(
+                        minPasswordLength,
+                        passwordComplexity,
+                        accountLockoutThreshold,
+                        passwordExpiration,
+                        historyCount
+                    ) { success, message ->
+                        if (success) {
+                            error = StringResources.getString("ui_securityPolicy_success")
+                            loadSystemPolicies { policies, err ->
+                                if (err == null) {
+                                    minPasswordLength = policies.minPasswordLength
+                                    passwordComplexity = policies.passwordComplexity
+                                    accountLockoutThreshold = policies.accountLockoutThreshold
+                                    passwordExpiration = policies.passwordExpiration
+                                    historyCount = policies.historyCount
+                                }
                             }
+                        } else {
+                            error = message
                         }
                     }
                 },
@@ -314,7 +310,6 @@ private fun SecurityPolicyField(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
@@ -350,7 +345,6 @@ private fun SecurityPolicyToggle(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -378,7 +372,7 @@ private fun SecurityPolicyToggle(
     }
 }
 
-// Данные политики безопасности
+//Данные политик безопасности
 data class UserSecurityPolicies(
     val minPasswordLength: Int,
     val passwordComplexity: Boolean,
@@ -387,13 +381,10 @@ data class UserSecurityPolicies(
     val historyCount: Int
 )
 
-// Загрузка политик безопасности пользователя
-private fun loadUserPolicies(
-    username: String,
+private fun loadSystemPolicies(
     onResult: (UserSecurityPolicies, String?) -> Unit
 ) {
     try {
-        // Проверяем, что приложение запущено от имени администратора
         if (!AppConfig.isRunningAsAdmin()) {
             onResult(
                 UserSecurityPolicies(8, true, 5, 90, 5),
@@ -402,11 +393,9 @@ private fun loadUserPolicies(
             return
         }
 
-        // Создаем временный файл для экспорта политик
         val tempFile = File.createTempFile("policies", ".inf")
         tempFile.deleteOnExit()
 
-        // Экспортируем текущие политики
         val exportProcess = ProcessBuilder(
             "secedit",
             "/export",
@@ -414,7 +403,8 @@ private fun loadUserPolicies(
             tempFile.absolutePath
         ).start()
 
-        if (exportProcess.waitFor() != 0) {
+        val exitCode = exportProcess.waitFor()
+        if (exitCode != 0) {
             onResult(
                 UserSecurityPolicies(8, true, 5, 90, 5),
                 StringResources.getString("ui_securityPolicy_error_load_failed")
@@ -422,12 +412,9 @@ private fun loadUserPolicies(
             return
         }
 
-        // Читаем экспортированные политики
         val policiesContent = String(tempFile.readBytes(), Charset.forName("CP866"))
 
-        // Парсим политики
         val policies = parseSecurityPolicies(policiesContent)
-
         onResult(policies, null)
     } catch (e: Exception) {
         Logger.error("Exception during security policy loading", e)
@@ -476,24 +463,7 @@ private fun parseSecurityPolicies(content: String): UserSecurityPolicies {
     )
 }
 
-
-
-// Парсинг вывода для получения политик
-private fun parseUserPolicies(output: String): UserSecurityPolicies {
-    // В реальной реализации здесь будет парсинг вывода команды
-    // Для демонстрации вернем дефолтные значения
-    return UserSecurityPolicies(
-        minPasswordLength = 8,
-        passwordComplexity = true,
-        accountLockoutThreshold = 5,
-        passwordExpiration = 90,
-        historyCount = 5
-    )
-}
-
-// Сохранение политик безопасности
-private fun saveUserPolicies(
-    username: String,
+private fun saveSystemPolicies(
     minPasswordLength: Int,
     passwordComplexity: Boolean,
     accountLockoutThreshold: Int,
@@ -502,27 +472,14 @@ private fun saveUserPolicies(
     onResult: (Boolean, String) -> Unit
 ) {
     try {
-        // Проверяем, что приложение запущено от имени администратора
         if (!AppConfig.isRunningAsAdmin()) {
             onResult(false, StringResources.getString("ui_securityPolicy_error_admin_required"))
             return
         }
 
-        // Проверяем, что пользователь существует
-        val userCheckProcess = ProcessBuilder("net", "user", username)
-            .redirectErrorStream(true)
-            .start()
-
-        if (userCheckProcess.waitFor() != 0) {
-            onResult(false, StringResources.getString("ui_securityPolicy_error_user_not_found", username))
-            return
-        }
-
-        // Создаем временный файл конфигурации
         val tempFile = File.createTempFile("security_policy", ".inf")
         tempFile.deleteOnExit()
 
-        // Создаем содержимое файла конфигурации
         val policyContent = $$"""
             [Unicode]
             Unicode=yes
@@ -539,16 +496,13 @@ private fun saveUserPolicies(
             ResetLockoutCount = 30
             LockoutDuration = 30
             [Event Audit]
-            ; 
+            ;
         """.trimIndent()
 
-        // Записываем во временный файл
         tempFile.writeText(policyContent)
 
-        // Проверяем содержимое файла перед применением
         Logger.info("Security policy content:\n$policyContent")
 
-        // Применяем политики
         val process = ProcessBuilder(
             "secedit",
             "/configure",
@@ -562,24 +516,22 @@ private fun saveUserPolicies(
 
         val exitCode = process.waitFor()
         if (exitCode == 0) {
-            Logger.info("Security policies applied successfully for user: $username")
+            Logger.info("Security policies applied successfully")
             onResult(true, "")
         } else {
-            // Чтение ошибки из потока ошибок
             val errorOutput = try {
                 String(process.errorStream.readBytes(), Charset.forName("CP866"))
             } catch (e: Exception) {
                 "Error reading error stream"
             }
 
-            // Чтение вывода стандартного потока
             val stdoutOutput = try {
                 String(process.inputStream.readBytes(), Charset.forName("CP866"))
             } catch (e: Exception) {
                 "Error reading stdout stream"
             }
 
-            Logger.warning("Failed to apply security policies for user: $username. Exit code: $exitCode, Error: $errorOutput, Output: $stdoutOutput")
+            Logger.warning("Failed to apply security policies. Exit code: $exitCode, Error: $errorOutput, Output: $stdoutOutput")
             onResult(false, StringResources.getString("ui_securityPolicy_error_apply_failed", exitCode, errorOutput))
         }
     } catch (e: Exception) {

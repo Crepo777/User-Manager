@@ -1,7 +1,5 @@
 package org.crepo.updated_user_manager
 
-// Logger.kt
-
 import java.io.File
 import java.io.FileOutputStream
 import java.io.FileWriter
@@ -21,7 +19,6 @@ object Logger {
         }
         logFile = File(appDir, "usermanager.log")
 
-        // Создаем файл, если его нет
         if (!logFile.exists()) {
             logFile.createNewFile()
         }
@@ -61,7 +58,6 @@ object Logger {
         if (!logFile.exists()) return ""
 
         return logFile.readLines().joinToString("\n") { line ->
-            // Парсим строку лога
             val timestampRegex = "\\[(.*?)\\]".toRegex()
             val levelRegex = "\\[(INFO|WARNING|ERROR)\\]".toRegex()
 
@@ -69,7 +65,6 @@ object Logger {
             val level = levelRegex.find(line)?.groupValues?.get(1) ?: ""
             val message = line.substringAfter("] ", "")
 
-            // Форматируем как CSV
             "\"$timestamp\",\"$level\",\"${message.replace("\"", "\"\"")}\""
         }
     }

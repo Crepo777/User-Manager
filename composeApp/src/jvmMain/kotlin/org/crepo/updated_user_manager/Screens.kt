@@ -29,9 +29,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.crepo.updateduser_manager.FileAttributesScreenContent
 
-
-//Глобальный state для языка (временно — до перехода на CompositionLocal)
-
 data object MainScreen : Screen {
     override val key = LanguageManager.currentLocale.toString()
 
@@ -42,6 +39,27 @@ data object MainScreen : Screen {
     }
 }
 
+data object DeveloperInfoScreen : Screen {
+    private fun readResolve(): Any = CreateUserScreen
+    override val key = uniqueScreenKey
+
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.current ?: return
+        UI1_2_DeveloperInfoScreenContent(navigateBack = { navigator.pop() })
+    }
+}
+
+data object FuturePlansScreen : Screen {
+    private fun readResolve(): Any = CreateUserScreen
+    override val key = uniqueScreenKey
+
+    @Composable
+    override fun Content() {
+        val navigator = LocalNavigator.current ?: return
+        UI_1_3_FuturePlansScreenContent(navigateBack = { navigator.pop() })
+    }
+}
 data object CreateUserScreen : Screen {
     private fun readResolve(): Any = CreateUserScreen
     override val key = uniqueScreenKey

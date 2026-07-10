@@ -33,7 +33,7 @@ fun UI2_6(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_manageGroups_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -47,7 +47,7 @@ fun UI2_6(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поле ввода имени
+        //Имя
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -56,7 +56,7 @@ fun UI2_6(navigateBack: () -> Unit) {
             singleLine = true
         )
 
-        // Кнопка загрузки групп
+        //Кнопка загрузки групп
         Button(
             onClick = {
                 if (username.isNotBlank()) {
@@ -71,7 +71,7 @@ fun UI2_6(navigateBack: () -> Unit) {
             Text(StringResources.getString("ui_manageGroups_btn_load"))
         }
 
-        // Результат операции
+        //Результат
         if (result.isNotBlank()) {
             Text(
                 text = result,
@@ -80,15 +80,14 @@ fun UI2_6(navigateBack: () -> Unit) {
             )
         }
 
-        // Две колонки групп
         if (username.isNotBlank()) {
             Row(
                 modifier = Modifier.fillMaxSize(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Группы пользователя
+                //Группы пользователя
                 GroupColumn(
-                    modifier = Modifier.weight(1f), // Правильное применение weight
+                    modifier = Modifier.weight(1f), //Правильное применение weight
                     title = StringResources.getString("ui_manageGroups_userGroups"),
                     groups = userGroups,
                     onRemove = { group ->
@@ -101,10 +100,9 @@ fun UI2_6(navigateBack: () -> Unit) {
                         }
                     }
                 )
-
-                // Доступные группы
+                //Доступные группы
                 GroupColumn(
-                    modifier = Modifier.weight(1f), // Правильное применение weight
+                    modifier = Modifier.weight(1f), //Правильное применение weight
                     title = StringResources.getString("ui_manageGroups_availableGroups"),
                     groups = availableGroups,
                     onAdd = { group ->
@@ -120,7 +118,6 @@ fun UI2_6(navigateBack: () -> Unit) {
             }
         }
 
-        // Кнопка "Назад"
         Button(
             onClick = navigateBack,
             modifier = Modifier
@@ -138,14 +135,14 @@ fun UI2_6(navigateBack: () -> Unit) {
 
 @Composable
 private fun GroupColumn(
-    modifier: Modifier = Modifier, // Добавляем параметр modifier
+    modifier: Modifier = Modifier,
     title: String,
     groups: List<String>,
     onRemove: ((String) -> Unit)? = null,
     onAdd: ((String) -> Unit)? = null
 ) {
     Column(
-        modifier = modifier // Используем переданный модификатор
+        modifier = modifier
     ) {
         Text(
             text = title,
@@ -156,13 +153,13 @@ private fun GroupColumn(
 
         Card(
             modifier = Modifier
-                .fillMaxSize() // Заполняет всё доступное пространство
-                .weight(1f), // Дополнительная гарантия
+                .fillMaxSize()
+                .weight(1f),
             shape = RoundedCornerShape(12.dp)
         ) {
             LazyColumn(
                 modifier = Modifier
-                    .fillMaxSize() // Критически важно для правильного отображения
+                    .fillMaxSize()
                     .padding(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -203,7 +200,7 @@ private fun loadUserGroups(
     onResult: (List<String>, List<String>) -> Unit
 ) {
     try {
-        // Получаем группы пользователя
+        //Группы пользователя
         val process1 = ProcessBuilder("net", "user", username)
             .redirectErrorStream(true)
             .start()
@@ -214,13 +211,11 @@ private fun loadUserGroups(
             return
         }
 
-        // Читаем вывод с правильной кодировкой
         val outputBytes1 = process1.inputStream.readBytes()
         val output1 = String(outputBytes1, Charset.forName("CP866"))
 
         val userGroups = parseUserGroups(output1)
 
-        // Получаем все локальные группы
         val process2 = ProcessBuilder("net", "localgroup")
             .redirectErrorStream(true)
             .start()
@@ -231,13 +226,11 @@ private fun loadUserGroups(
             return
         }
 
-        // Читаем вывод с правильной кодировкой
         val outputBytes2 = process2.inputStream.readBytes()
         val output2 = String(outputBytes2, Charset.forName("CP866"))
 
         val allGroups = parseAllGroups(output2)
 
-        // Фильтруем группы, которые пользователь уже входит
         val availableGroups = allGroups.filter { !userGroups.contains(it) }
 
         onResult(userGroups, availableGroups)
@@ -258,7 +251,6 @@ private fun parseUserGroups(output: String): List<String> {
         }
 
         if (isGroupSection && line.isNotBlank()) {
-            // Ищем группы, начинающиеся с *
             if (line.startsWith("*")) {
                 val group = line.trimStart('*').trim()
                 if (group.isNotEmpty()) {
@@ -303,7 +295,6 @@ private fun addUserToGroup(username: String, group: String, onResult: (String) -
             onResult(StringResources.getString("ui_manageGroups_success_add", username, group))
             Logger.info("User '$username' added to group '$group'")
         } else {
-            // Читаем вывод с правильной кодировкой
             val outputBytes = process.inputStream.readBytes()
             val output = String(outputBytes, Charset.forName("CP866"))
 
@@ -336,7 +327,6 @@ private fun removeUserFromGroup(username: String, group: String, onResult: (Stri
             onResult(StringResources.getString("ui_manageGroups_success_remove", username, group))
             Logger.info("User '$username' removed from group '$group'")
         } else {
-            // Читаем вывод с правильной кодировкой
             val outputBytes = process.inputStream.readBytes()
             val output = String(outputBytes, Charset.forName("CP866"))
 

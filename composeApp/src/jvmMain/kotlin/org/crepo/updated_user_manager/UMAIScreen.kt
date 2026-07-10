@@ -1,4 +1,4 @@
-// UMAIScreen.kt
+//ЭТОТ ЭКРАН НЕ ИСПОЛЬЗУЕТСЯ
 package org.crepo.updated_user_manager
 
 import androidx.compose.foundation.background
@@ -36,7 +36,7 @@ fun UMAIScreenContent() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = "UMAI (User Manager AI)",
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
@@ -52,7 +52,7 @@ fun UMAIScreenContent() {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Область чата
+        //Область чата
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -62,7 +62,6 @@ fun UMAIScreenContent() {
             contentAlignment = Alignment.TopStart
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                // Примеры команд
                 Text(
                     text = "Примеры команд:",
                     style = MaterialTheme.typography.titleMedium,
@@ -72,7 +71,7 @@ fun UMAIScreenContent() {
                 Text("• Удали пользователя test")
                 Text("• Назначь права на C:\\Folder для user1")
 
-                // Ответ ИИ
+                //Ответ ИИ
                 if (aiResponse.isNotBlank()) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
@@ -86,7 +85,7 @@ fun UMAIScreenContent() {
             }
         }
 
-        // Поле ввода
+        //Поле ввода
         OutlinedTextField(
             value = userInput,
             onValueChange = { userInput = it },
@@ -120,7 +119,6 @@ fun UMAIScreenContent() {
             }
         )
 
-        // Кнопка "Назад"
         Button(
             onClick = { navigator.pop() },
             modifier = Modifier
@@ -136,7 +134,7 @@ fun UMAIScreenContent() {
         }
     }
 
-    // Диалог подтверждения
+    //Диалог подтверждения
     if (showConfirmation && commandToExecute != null) {
         val cmd = commandToExecute!!
         AlertDialog(
@@ -153,7 +151,7 @@ fun UMAIScreenContent() {
                     if (cmd.isDangerous) {
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "⚠️ Эта команда может быть опасной!",
+                            text = "⚠\uFE0F Эта команда может быть опасной!",
                             color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.Bold
                         )
@@ -177,7 +175,7 @@ fun UMAIScreenContent() {
     }
 }
 
-// Результат обработки команды
+//Результат обработки команды
 data class CommandResult(
     val action: String,
     val description: String,
@@ -186,12 +184,12 @@ data class CommandResult(
     val isDangerous: Boolean = false
 )
 
-// Обработка команд
+//Обработка команд
 fun processCommand(text: String): CommandResult {
     val normalized = text.lowercase().replace("[^a-zа-я0-9]", " ")
 
     return when {
-        // Создание пользователя
+        //Создание пользователя
         (normalized.contains("создать") || normalized.contains("сделать") || normalized.contains("добавить")) &&
                 (normalized.contains("пользователь") || normalized.contains("юзер") || normalized.contains("user")) -> {
             val username = extractUsername(normalized) ?: "newuser"
@@ -205,7 +203,7 @@ fun processCommand(text: String): CommandResult {
             )
         }
 
-        // Удаление пользователя
+        //Удаление пользователя
         (normalized.contains("удалить") || normalized.contains("удали")) &&
                 (normalized.contains("пользователь") || normalized.contains("юзер") || normalized.contains("user")) -> {
             val username = extractUsername(normalized) ?: "user"
@@ -218,7 +216,7 @@ fun processCommand(text: String): CommandResult {
             )
         }
 
-        // Назначение прав
+        //Назначение прав
         (normalized.contains("назначить") || normalized.contains("дать") || normalized.contains("выдать")) &&
                 (normalized.contains("права") || normalized.contains("разрешение")) -> {
             val username = extractUsername(normalized) ?: "user"
@@ -244,7 +242,6 @@ fun processCommand(text: String): CommandResult {
     }
 }
 
-// Вспомогательные функции для извлечения данных
 fun extractUsername(text: String): String? {
     val patterns = listOf(
         "пользователь\\s+(\\w+)",
@@ -292,7 +289,7 @@ fun extractPath(text: String): String? {
     return null
 }
 
-// Выполнение команды
+//Выполнение команды
 fun executeCommand(command: CommandResult) {
     when (command.action) {
         "create_user" -> {

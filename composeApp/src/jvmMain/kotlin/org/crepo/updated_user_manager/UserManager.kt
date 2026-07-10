@@ -1,7 +1,5 @@
 package org.crepo.updated_user_manager
 
-// UserManager.kt
-
 import java.io.File
 
 data class User(

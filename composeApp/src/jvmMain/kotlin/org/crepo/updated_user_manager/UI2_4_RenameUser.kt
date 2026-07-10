@@ -31,7 +31,7 @@ fun RenameUserScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_renameUser_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -45,7 +45,7 @@ fun RenameUserScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поля ввода
+        //Поля ввода
         OutlinedTextField(
             value = oldUsername,
             onValueChange = { oldUsername = it },
@@ -69,13 +69,11 @@ fun RenameUserScreenContent(navigateBack: () -> Unit) {
                 keyboardType = KeyboardType.Text
             ),
             keyboardActions = KeyboardActions(
-                onDone = {
-                    // Здесь можно вызвать executeRename, если хочешь
-                }
+                onDone = { }
             )
         )
 
-        // Результат операции
+        //Результат
         if (result.isNotBlank()) {
             Text(
                 text = result,
@@ -84,7 +82,7 @@ fun RenameUserScreenContent(navigateBack: () -> Unit) {
             )
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -130,7 +128,6 @@ private fun executeRename(oldUsername: String, newUsername: String, onResult: (S
         Charset.forName("UTF-8")
 
     try {
-        // Используем PowerShell, так как wmic устаревает
         val process = ProcessBuilder(
             "powershell",
             "-Command",

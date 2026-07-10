@@ -58,7 +58,7 @@ compose.desktop {
             targetFormats(TargetFormat.Exe)
             //targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.crepo.updated_user_manager"
-            packageVersion = "0.1.24"
+            packageVersion = "1.0.0"
 
             windows {
                 menuGroup = "User Manager"

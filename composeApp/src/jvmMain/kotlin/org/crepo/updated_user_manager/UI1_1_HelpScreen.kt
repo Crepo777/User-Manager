@@ -801,6 +801,37 @@ private fun HelpContent(
                             Text(StringResources.getString("help_suspicious_activity_tips"))
                         }
                     )
+                    //Проверка соответствия стандартам
+                    HelpSubsection(
+                        title = StringResources.getString("help_subsection_compliance_check"),
+                        content = {
+                            Text(StringResources.getString("help_compliance_check_desc"), lineHeight = 24.sp)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = StringResources.getString("help_compliance_check_howto"),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(StringResources.getString("help_compliance_check_steps"))
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = StringResources.getString("help_compliance_check_tips_title"),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(StringResources.getString("help_compliance_check_tips"))
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = StringResources.getString("help_compliance_check_more_title"),
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text("CIS Benchmark: https://www.cisecurity.org/cis-benchmarks/")
+                            Text("NIST 800-53: https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final")
+                            Text("PCI DSS: https://www.pcisecuritystandards.org/standards/")
+                        }
+                    )
                 }
             )
         }

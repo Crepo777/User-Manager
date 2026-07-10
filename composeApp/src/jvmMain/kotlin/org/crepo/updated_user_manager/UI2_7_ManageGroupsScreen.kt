@@ -1,3 +1,4 @@
+//ЭТОТ ЭКРАН НЕ ИСПОЛЬЗУЕТСЯ
 package org.crepo.updated_user_manager
 
 import androidx.compose.foundation.background
@@ -20,7 +21,6 @@ fun UI2_7(navigateBack: () -> Unit) {
     var result by remember { mutableStateOf("") }
     var groups by remember { mutableStateOf(emptyList<String>()) }
 
-    // Загружаем группы при старте экрана
     LaunchedEffect(Unit) {
         loadGroups { groupsList ->
             groups = groupsList
@@ -35,7 +35,7 @@ fun UI2_7(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_manageGroups_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -49,7 +49,7 @@ fun UI2_7(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поле ввода имени группы
+        //Имя группы
         OutlinedTextField(
             value = groupName,
             onValueChange = { groupName = it },
@@ -57,7 +57,7 @@ fun UI2_7(navigateBack: () -> Unit) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Кнопки создания и удаления
+        //Кнопки создания и удаления
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -91,7 +91,7 @@ fun UI2_7(navigateBack: () -> Unit) {
             }
         }
 
-        // Результат операции
+        //Результат
         if (result.isNotBlank()) {
             Text(
                 text = result,
@@ -100,7 +100,7 @@ fun UI2_7(navigateBack: () -> Unit) {
             )
         }
 
-        // Список групп
+        //Список групп
         Text(
             text = StringResources.getString("ui_manageGroups_existingGroups"),
             style = MaterialTheme.typography.titleMedium,
@@ -127,7 +127,6 @@ fun UI2_7(navigateBack: () -> Unit) {
             }
         }
 
-        // Кнопка "Назад"
         Button(
             onClick = navigateBack,
             modifier = Modifier
@@ -143,7 +142,7 @@ fun UI2_7(navigateBack: () -> Unit) {
     }
 }
 
-// Загрузка списка групп
+//Загрузка списка групп
 private fun loadGroups(onResult: (List<String>) -> Unit) {
     try {
         val process = ProcessBuilder("net", "localgroup")
@@ -156,7 +155,6 @@ private fun loadGroups(onResult: (List<String>) -> Unit) {
             return
         }
 
-        // Читаем вывод с правильной кодировкой
         val outputBytes = process.inputStream.readBytes()
         val output = String(outputBytes, Charset.forName("CP866"))
 
@@ -168,7 +166,7 @@ private fun loadGroups(onResult: (List<String>) -> Unit) {
     }
 }
 
-// Парсинг списка групп из вывода
+//Парсинг списка групп из вывода
 private fun parseGroups(output: String): List<String> {
     val groups = mutableListOf<String>()
     var isGroupSection = false
@@ -190,7 +188,7 @@ private fun parseGroups(output: String): List<String> {
     return groups
 }
 
-// Создание группы
+//Создание группы
 private fun createGroup(groupName: String, onResult: (String) -> Unit) {
     try {
         val process = ProcessBuilder("net", "localgroup", groupName, "/add")
@@ -202,7 +200,6 @@ private fun createGroup(groupName: String, onResult: (String) -> Unit) {
             onResult(StringResources.getString("ui_manageGroups_success_create", groupName))
             Logger.info("Group created: $groupName")
         } else {
-            // Читаем вывод с правильной кодировкой
             val outputBytes = process.inputStream.readBytes()
             val output = String(outputBytes, Charset.forName("CP866"))
 
@@ -222,7 +219,7 @@ private fun createGroup(groupName: String, onResult: (String) -> Unit) {
     }
 }
 
-// Удаление группы
+//Удаление группы
 private fun deleteGroup(groupName: String, onResult: (String) -> Unit) {
     try {
         val process = ProcessBuilder("net", "localgroup", groupName, "/delete")
@@ -234,7 +231,6 @@ private fun deleteGroup(groupName: String, onResult: (String) -> Unit) {
             onResult(StringResources.getString("ui_manageGroups_success_delete", groupName))
             Logger.info("Group deleted: $groupName")
         } else {
-            // Читаем вывод с правильной кодировкой
             val outputBytes = process.inputStream.readBytes()
             val output = String(outputBytes, Charset.forName("CP866"))
 

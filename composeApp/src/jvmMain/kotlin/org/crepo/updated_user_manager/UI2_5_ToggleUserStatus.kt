@@ -29,7 +29,7 @@ fun ToggleUserStatusScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_toggleUserStatus_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -43,7 +43,7 @@ fun ToggleUserStatusScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поле ввода имени
+        //Имя
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -64,7 +64,7 @@ fun ToggleUserStatusScreenContent(navigateBack: () -> Unit) {
             )
         )
 
-        // Статус пользователя
+        //Статус пользователя
         if (username.isNotBlank()) {
             val statusText = if (isBlocked)
                 StringResources.getString("ui_toggleUserStatus_status_blocked")
@@ -81,7 +81,7 @@ fun ToggleUserStatusScreenContent(navigateBack: () -> Unit) {
             )
         }
 
-        // Результат операции
+        //Результат
         if (result.isNotBlank()) {
             Text(
                 text = result,
@@ -90,7 +90,7 @@ fun ToggleUserStatusScreenContent(navigateBack: () -> Unit) {
             )
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -149,11 +149,9 @@ private fun checkUserStatus(username: String, onResult: (Boolean) -> Unit) {
             return
         }
 
-        // Читаем вывод с правильной кодировкой
         val outputBytes = process.inputStream.readBytes()
         val output = String(outputBytes, Charset.forName("CP866"))
 
-        // Проверяем статус блокировки
         val isBlocked = output.contains("Аккаунт заблокирован") ||
                 output.contains("Account disabled")
 
@@ -175,7 +173,6 @@ private fun blockUser(username: String, onResult: (String) -> Unit) {
             onResult(StringResources.getString("ui_toggleUserStatus_success_block", username))
             Logger.info("User blocked: $username")
         } else {
-            // Читаем вывод с правильной кодировкой
             val outputBytes = process.inputStream.readBytes()
             val output = String(outputBytes, Charset.forName("CP866"))
 
@@ -204,7 +201,6 @@ private fun unblockUser(username: String, onResult: (String) -> Unit) {
             onResult(StringResources.getString("ui_toggleUserStatus_success_unblock", username))
             Logger.info("User unblocked: $username")
         } else {
-            // Читаем вывод с правильной кодировкой
             val outputBytes = process.inputStream.readBytes()
             val output = String(outputBytes, Charset.forName("CP866"))
 

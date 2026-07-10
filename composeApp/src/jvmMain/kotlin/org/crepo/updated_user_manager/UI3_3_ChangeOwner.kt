@@ -29,7 +29,7 @@ fun ChangeOwnerScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_changeOwner_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -43,7 +43,7 @@ fun ChangeOwnerScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поля ввода
+        //Поля ввода
         OutlinedTextField(
             value = path,
             onValueChange = { path = it },
@@ -68,7 +68,7 @@ fun ChangeOwnerScreenContent(navigateBack: () -> Unit) {
             )
         )
 
-        // Результат операции
+        //Результат
         if (result.isNotBlank()) {
             Text(
                 text = result,
@@ -77,7 +77,7 @@ fun ChangeOwnerScreenContent(navigateBack: () -> Unit) {
             )
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -124,7 +124,6 @@ private fun executeChangeOwner(path: String, username: String, onResult: (String
 
     try {
 
-        // Сначала получаем владение
         val takeownProcess = ProcessBuilder(
             "takeown", "/f", path, "/r", "/d", "y"
         ).redirectErrorStream(true).start()
@@ -141,7 +140,6 @@ private fun executeChangeOwner(path: String, username: String, onResult: (String
             return
         }
 
-        // Затем изменяем владельца
         val process = ProcessBuilder(
             "icacls", path, "/grant", "$username:(F)", "/t"
         ).redirectErrorStream(true).start()

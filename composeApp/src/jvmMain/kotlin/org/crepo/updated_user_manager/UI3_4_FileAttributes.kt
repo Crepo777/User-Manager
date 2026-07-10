@@ -34,7 +34,7 @@ fun FileAttributesScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_fileAttributes_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -48,7 +48,7 @@ fun FileAttributesScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Поле ввода пути
+        //Ввод пути
         OutlinedTextField(
             value = path,
             onValueChange = { path = it },
@@ -73,7 +73,7 @@ fun FileAttributesScreenContent(navigateBack: () -> Unit) {
             )
         )
 
-        // Атрибуты файла
+        //Атрибуты файла
         if (path.isNotBlank()) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -113,7 +113,7 @@ fun FileAttributesScreenContent(navigateBack: () -> Unit) {
             }
         }
 
-        // Результат операции
+        //Результат
         if (result.isNotBlank()) {
             Text(
                 text = result,
@@ -122,7 +122,7 @@ fun FileAttributesScreenContent(navigateBack: () -> Unit) {
             )
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -175,7 +175,6 @@ private fun executeViewAttributes(
         val output = String(outputBytes, Charset.forName("CP866"))
 
         if (exitCode == 0) {
-            // Парсим атрибуты из вывода
             val attributes = parseAttributes(output)
 
             val message = buildString {
@@ -210,10 +209,10 @@ private fun executeViewAttributes(
 private fun parseAttributes(output: String): List<Boolean> {
     val attributes = output.lowercase()
     return listOf(
-        attributes.contains("r"), // ReadOnly
-        attributes.contains("h"), // Hidden
-        attributes.contains("s"), // System
-        attributes.contains("a")  // Archive
+        attributes.contains("r"), //ReadOnly
+        attributes.contains("h"), //Hidden
+        attributes.contains("s"), //System
+        attributes.contains("a")  //Archive
     )
 }
 
@@ -225,7 +224,6 @@ private fun executeChangeAttributes(
     try {
         val commands = mutableListOf<String>()
 
-        // Собираем команды для изменения атрибутов
         if (attributes[0]) commands.add("+r") else commands.add("-r")
         if (attributes[1]) commands.add("+h") else commands.add("-h")
         if (attributes[2]) commands.add("+s") else commands.add("-s")

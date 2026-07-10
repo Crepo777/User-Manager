@@ -13,7 +13,6 @@ import org.crepo.updated_user_manager.InitialScreen
 
 
 fun main() = singleWindowApplication {
-    // Устанавливаем кодовую страницу 1251
     try {
         ProcessBuilder("cmd", "/c", "chcp", "1251 >nul").start()
     } catch (e: Exception) {
@@ -22,7 +21,6 @@ fun main() = singleWindowApplication {
     val (locale, setLocale) = remember { mutableStateOf(LanguageManager.currentLocale) }
 
 
-    // Обновляем глобальный язык при смене
     LaunchedEffect(locale) {
         LanguageManager.setLocale(locale)
     }

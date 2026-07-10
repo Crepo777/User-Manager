@@ -21,7 +21,7 @@ import java.util.Locale
 fun UI2_2(navigateBack: () -> Unit) {
     var username by remember { mutableStateOf("") }
     var result by remember { mutableStateOf("") }
-    var showDeleteDialog by remember { mutableStateOf(false) } // Диалог подтверждения
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     val navigator = LocalNavigator.current ?: return
 
@@ -33,14 +33,14 @@ fun UI2_2(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_deleteUser_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Start)
         )
 
-        // Предупреждение
+        //Предупреждение
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -64,7 +64,7 @@ fun UI2_2(navigateBack: () -> Unit) {
             }
         }
 
-        // Поле ввода
+        //Поле ввода
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -74,7 +74,7 @@ fun UI2_2(navigateBack: () -> Unit) {
             singleLine = true
         )
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -95,7 +95,7 @@ fun UI2_2(navigateBack: () -> Unit) {
                     if (username.isBlank()) {
                         result = StringResources.getString("ui_deleteUser_error_noName")
                     } else {
-                        showDeleteDialog = true // Показать диалог
+                        showDeleteDialog = true
                     }
                 },
                 modifier = Modifier.weight(1f),
@@ -108,7 +108,7 @@ fun UI2_2(navigateBack: () -> Unit) {
             }
         }
 
-        // Результат
+        //Результат
         if (result.isNotEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -118,7 +118,7 @@ fun UI2_2(navigateBack: () -> Unit) {
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    result.startsWith("⚠️") -> CardDefaults.cardColors(
+                    result.startsWith("⚠\uFE0F") -> CardDefaults.cardColors(
                         //containerColor = MaterialTheme.colorScheme.warningContainer,
                         //contentColor = MaterialTheme.colorScheme.onWarningContainer
                     )
@@ -137,7 +137,7 @@ fun UI2_2(navigateBack: () -> Unit) {
         }
     }
 
-    // Диалог подтверждения
+    //Диалог подтверждения
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -177,22 +177,20 @@ fun UI2_2(navigateBack: () -> Unit) {
     }
 }
 
-// Функция выполнения удаления
+//Выполнение удаления
 private fun executeDelete(username: String, onResult: (String) -> Unit) {
-    // В начало функции
     val charset = if (Locale.getDefault().language == "ru")
         Charset.forName("CP866")
     else
         Charset.forName("UTF-8")
 
     try {
-        // 1. Удаляем учётную запись
+        //Удаление учётной записи
         val process1 = ProcessBuilder("net", "user", username, "/delete")
             .redirectErrorStream(true)
             .start()
         val exitCode1 = process1.waitFor()
 
-        // Читаем вывод в OEM-кодировке (CP866)
         val outputBytes1 = process1.inputStream.readBytes()
         val output1 = String(outputBytes1, Charset.forName("CP866"))
 
@@ -202,16 +200,14 @@ private fun executeDelete(username: String, onResult: (String) -> Unit) {
             else
                 StringResources.getString("ui_deleteUser_error_code", exitCode1, output1.take(100)) + exitCode1 + "\n" + output1.take(100)
 
-            // Логируем предупреждение об ошибке удаления учетной записи
             Logger.warning("Failed to delete user: $username, error: $output1")
             onResult(errorMessage)
             return
         } else {
-            // Логируем успешное удаление учетной записи
             Logger.info("User account deleted: $username")
         }
 
-        // 2. Удаляем папку пользователя
+        //Удаление папки пользователя
         val userProfile = System.getProperty("user.home")
         val userFolder = "$userProfile\\..\\Users\\$username"
         val process2 = ProcessBuilder("cmd", "/c", "rmdir", "/s", "/q", userFolder)
@@ -219,21 +215,17 @@ private fun executeDelete(username: String, onResult: (String) -> Unit) {
             .start()
         val exitCode2 = process2.waitFor()
 
-        // Читаем вывод в OEM-кодировке (CP866)
         val outputBytes2 = process2.inputStream.readBytes()
         val output2 = String(outputBytes2, Charset.forName("CP866"))
 
         if (exitCode2 == 0) {
-            // Логируем успешное удаление папки
             Logger.info("User folder deleted: $username")
             onResult(StringResources.getString("ui_deleteUser_fullSuccess_title"))
         } else {
-            // Логируем предупреждение об ошибке удаления папки
             Logger.warning("Failed to delete user folder: $username, error: $output2")
             onResult(StringResources.getString("ui_deleteUser_halfSuccess_title"))
         }
     } catch (e: Exception) {
-        // Логируем исключение
         Logger.error("Exception during user deletion", e)
         onResult(StringResources.getString("ui_deleteUser_error"))
     }

@@ -39,14 +39,14 @@ fun UI2_1(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_createUser_title_create"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Start)
         )
 
-        // Поле: Имя
+        //Имя
         OutlinedTextField(
             value = username,
             onValueChange = { username = it },
@@ -59,7 +59,7 @@ fun UI2_1(navigateBack: () -> Unit) {
             }
         )
 
-        // Поле: Пароль
+        //Пароль
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -74,7 +74,7 @@ fun UI2_1(navigateBack: () -> Unit) {
             }
         )
 
-        // Примечание
+        //Примечание
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.medium,
@@ -88,7 +88,7 @@ fun UI2_1(navigateBack: () -> Unit) {
             )
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -130,22 +130,18 @@ fun UI2_1(navigateBack: () -> Unit) {
 
                         if (exitCode == 0) {
                             result = StringResources.getString("ui_createUser_success_user_created", username)
-                            // Логируем успешное создание пользователя
                             Logger.info("User created: $username")
                         } else {
                             if (output.contains("уже существует") || output.contains("already exists")) {
                                 result = StringResources.getString("ui_createUser_warning_user_exists_1", username)
-                                // Логируем предупреждение о существующем пользователе
                                 Logger.warning("User already exists: $username")
                             } else {
                                 result = StringResources.getString("ui_createUser_error_code", exitCode, output.take(100))
-                                // Логируем ошибку создания пользователя
                                 Logger.error("Error creating user '$username': exit code $exitCode, output: ${output.take(100)}")
                             }
                         }
                     } catch (e: Exception) {
                         result = StringResources.getString("ui_createUser_error_execution", e.message ?: "Unknown error")
-                        // Логируем исключение
                         Logger.error("Exception during user creation", e)
                     }
                 },
@@ -159,7 +155,7 @@ fun UI2_1(navigateBack: () -> Unit) {
             }
         }
 
-        // Результат
+        //Результат
         if (result.isNotEmpty()) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -169,7 +165,7 @@ fun UI2_1(navigateBack: () -> Unit) {
                         containerColor = MaterialTheme.colorScheme.primaryContainer,
                         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                     )
-                    result.startsWith("⚠️") -> CardDefaults.cardColors(
+                    result.startsWith("⚠\uFE0F") -> CardDefaults.cardColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant,
                         contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                     )

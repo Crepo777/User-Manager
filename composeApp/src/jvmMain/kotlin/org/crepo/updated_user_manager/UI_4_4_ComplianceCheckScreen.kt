@@ -14,12 +14,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.navigator.LocalNavigator
+import java.io.File
+import java.nio.charset.Charset
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
-    // Состояние экрана
     var selectedStandard by remember { mutableStateOf("CIS") }
     var checkResults by remember { mutableStateOf(emptyList<ComplianceResult>()) }
     var isLoading by remember { mutableStateOf(false) }
@@ -33,7 +35,7 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_complianceCheck_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -47,7 +49,6 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Настройки проверки
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -58,7 +59,6 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Стандарт
                 Text(
                     text = StringResources.getString("ui_complianceCheck_standard"),
                     style = MaterialTheme.typography.titleMedium,
@@ -121,7 +121,6 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
                     }
                 }
 
-                // Кнопка проверки
                 Button(
                     onClick = {
                         isLoading = true
@@ -143,7 +142,7 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
             }
         }
 
-        // Результаты проверки
+        //Результаты проверки
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -154,7 +153,7 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                // Заголовок результатов
+                //Заголовок результатов
                 Text(
                     text = StringResources.getString("ui_complianceCheck_results"),
                     style = MaterialTheme.typography.titleMedium,
@@ -163,7 +162,7 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Статистика (всегда видимая вверху)
+                //Статистика
                 if (!isLoading && checkResults.isNotEmpty()) {
                     val compliantCount = checkResults.count { it.status == "Compliant" }
                     val warningCount = checkResults.count { it.status == "Warning" }
@@ -193,7 +192,7 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
-                // Содержимое результатов (прокручиваемая область)
+                //Содержимое результатов
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -214,7 +213,7 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     } else {
-                        // Список результатов
+                        //Список результатов
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -228,7 +227,6 @@ fun UI4_4_ComplianceCheckScreenContent(navigateBack: () -> Unit) {
             }
         }
 
-        // Кнопка "Назад"
         Button(
             onClick = navigateBack,
             modifier = Modifier
@@ -368,16 +366,14 @@ data class ComplianceResult(
     val requiredValue: String
 )
 
-// Проверка соответствия стандартам безопасности
+//Проверка соответствия стандартам безопасности
 private fun checkCompliance(
     standard: String,
     onResult: (List<ComplianceResult>) -> Unit
 ) {
     try {
-        // Получаем текущие политики безопасности
         val policies = getCurrentSecurityPolicies()
 
-        // Анализируем соответствие выбранному стандарту
         val results = when (standard) {
             "CIS" -> analyzeCISCompliance(policies)
             "NIST" -> analyzeNISTCompliance(policies)
@@ -401,26 +397,142 @@ private fun checkCompliance(
     }
 }
 
-// Получение текущих политик безопасности
-private fun getCurrentSecurityPolicies(): UserSecurityPolicies {
-    // Здесь должен быть код для получения текущих политик безопасности
-    // В реальной реализации это будет вызов функции, аналогичной loadUserPolicies
 
-    // Для демонстрации вернем дефолтные значения
+
+private fun getCurrentSecurityPolicies(): UserSecurityPolicies {
+    try {
+        if (!AppConfig.isRunningAsAdmin()) {
+            Logger.warning("Admin rights required to get security policies")
+            return UserSecurityPolicies(8, true, 5, 90, 5)
+        }
+
+        val seceditCheck = ProcessBuilder("where", "secedit")
+            .redirectErrorStream(true)
+            .start()
+
+        if (seceditCheck.waitFor() != 0) {
+            Logger.warning("secedit command not found - likely Home Edition of Windows")
+            return UserSecurityPolicies(8, true, 5, 90, 5)
+        }
+
+        val tempFile = File.createTempFile("policies", ".inf")
+        tempFile.deleteOnExit()
+
+        val exportProcess = ProcessBuilder(
+            "secedit",
+            "/export",
+            "/cfg",
+            tempFile.absolutePath
+        ).start()
+
+        val completed = exportProcess.waitFor(10, TimeUnit.SECONDS)
+        if (!completed) {
+            Logger.warning("Timeout while exporting security policies")
+            exportProcess.destroy()
+            tempFile.delete()
+            return UserSecurityPolicies(8, true, 5, 90, 5)
+        }
+
+        if (exportProcess.exitValue() != 0) {
+            Logger.warning("Failed to export security policies. Exit code: ${exportProcess.exitValue()}")
+            tempFile.delete()
+            return UserSecurityPolicies(8, true, 5, 90, 5)
+        }
+
+        if (tempFile.length() == 0L) {
+            Logger.warning("Exported security policies file is empty")
+            tempFile.delete()
+            return UserSecurityPolicies(8, true, 5, 90, 5)
+        }
+
+        val possibleCharsets = listOf(
+            Charset.forName("CP866"),    //Русская кодировка
+            Charset.forName("Windows-1251"), //Альтернативная русская кодировка
+            Charset.forName("UTF-8"),    //Универсальная кодировка
+            Charset.defaultCharset()     //Системная кодировка
+        )
+
+        var policiesContent = ""
+        var charsetUsed: Charset? = null
+
+        for (charset in possibleCharsets) {
+            try {
+                policiesContent = String(tempFile.readBytes(), charset)
+                charsetUsed = charset
+                break
+            } catch (e: Exception) {
+                continue
+            }
+        }
+
+        if (charsetUsed == null) {
+            Logger.warning("Failed to read security policies with any charset")
+            tempFile.delete()
+            return UserSecurityPolicies(8, true, 5, 90, 5)
+        }
+
+        Logger.info("Security policies read successfully with charset: ${charsetUsed.name()}")
+
+        return parseSecurityPolicies(policiesContent)
+    } catch (e: Exception) {
+        Logger.error("Exception during security policy loading", e)
+        return UserSecurityPolicies(8, true, 5, 90, 5)
+    }
+}
+
+private fun parseSecurityPolicies(content: String): UserSecurityPolicies {
+    val lines = content.lines()
+
+    var minPasswordLength = 8
+    var passwordComplexity = true
+    var accountLockoutThreshold = 5
+    var passwordExpiration = 90
+    var historyCount = 5
+
+    for (line in lines) {
+        when {
+            line.contains("MinimumPasswordLength", ignoreCase = true) -> {
+                minPasswordLength = extractValue(line)
+            }
+            line.contains("PasswordComplexity", ignoreCase = true) -> {
+                passwordComplexity = extractValue(line) == 1
+            }
+            line.contains("LockoutBadCount", ignoreCase = true) -> {
+                accountLockoutThreshold = extractValue(line)
+            }
+            line.contains("MaximumPasswordAge", ignoreCase = true) -> {
+                passwordExpiration = extractValue(line)
+            }
+            line.contains("PasswordHistorySize", ignoreCase = true) -> {
+                historyCount = extractValue(line)
+            }
+        }
+    }
+
+    minPasswordLength = minPasswordLength.coerceIn(1, 128)
+    accountLockoutThreshold = accountLockoutThreshold.coerceIn(0, 999)
+    passwordExpiration = passwordExpiration.coerceIn(0, 999)
+    historyCount = historyCount.coerceIn(0, 24)
+
     return UserSecurityPolicies(
-        minPasswordLength = 8,
-        passwordComplexity = true,
-        accountLockoutThreshold = 5,
-        passwordExpiration = 90,
-        historyCount = 5
+        minPasswordLength = minPasswordLength,
+        passwordComplexity = passwordComplexity,
+        accountLockoutThreshold = accountLockoutThreshold,
+        passwordExpiration = passwordExpiration,
+        historyCount = historyCount
     )
 }
 
-// Анализ соответствия CIS Benchmark
+private fun extractValue(line: String): Int {
+    val valueStr = line.substringAfter("=").trim()
+    return valueStr.toIntOrNull() ?: 0
+}
+
+//CIS Benchmark
 private fun analyzeCISCompliance(policies: UserSecurityPolicies): List<ComplianceResult> {
     val results = mutableListOf<ComplianceResult>()
 
-    // Проверка 1.1.1: Минимальная длина пароля
+    //Минимальная длина пароля
     val minPasswordLength = 14
     val passwordLengthStatus = if (policies.minPasswordLength >= minPasswordLength) "Compliant" else "Critical"
     val passwordLengthRecommendation = if (policies.minPasswordLength < minPasswordLength) {
@@ -440,7 +552,7 @@ private fun analyzeCISCompliance(policies: UserSecurityPolicies): List<Complianc
         )
     )
 
-    // Проверка 1.1.2: Сложность пароля
+    //Сложность пароля
     val passwordComplexityStatus = if (policies.passwordComplexity) "Compliant" else "Critical"
     val passwordComplexityRecommendation = if (!policies.passwordComplexity) {
         StringResources.getString("ui_complianceCheck_cis_1_1_2_recommendation")
@@ -459,7 +571,7 @@ private fun analyzeCISCompliance(policies: UserSecurityPolicies): List<Complianc
         )
     )
 
-    // Проверка 1.1.3: Блокировка после неудачных попыток
+    //Блокировка после неудачных попыток
     val lockoutThreshold = 5
     val lockoutStatus = if (policies.accountLockoutThreshold <= lockoutThreshold) "Compliant" else "Warning"
     val lockoutRecommendation = if (policies.accountLockoutThreshold > lockoutThreshold) {
@@ -479,7 +591,7 @@ private fun analyzeCISCompliance(policies: UserSecurityPolicies): List<Complianc
         )
     )
 
-    // Проверка 1.1.4: Срок действия пароля
+    //Срок действия пароля
     val passwordExpiration = 60
     val expirationStatus = if (policies.passwordExpiration <= passwordExpiration && policies.passwordExpiration > 0) "Compliant" else "Warning"
     val expirationRecommendation = if (policies.passwordExpiration > passwordExpiration || policies.passwordExpiration == 0) {
@@ -499,7 +611,7 @@ private fun analyzeCISCompliance(policies: UserSecurityPolicies): List<Complianc
         )
     )
 
-    // Проверка 1.1.5: История паролей
+    //История паролей
     val historyCount = 24
     val historyStatus = if (policies.historyCount >= historyCount) "Compliant" else "Warning"
     val historyRecommendation = if (policies.historyCount < historyCount) {
@@ -522,11 +634,11 @@ private fun analyzeCISCompliance(policies: UserSecurityPolicies): List<Complianc
     return results
 }
 
-// Анализ соответствия NIST 800-53
+//NIST 800-53
 private fun analyzeNISTCompliance(policies: UserSecurityPolicies): List<ComplianceResult> {
     val results = mutableListOf<ComplianceResult>()
 
-    // Проверка IA-5: Управление аутентификаторами паролей
+    //Управление аутентификаторами паролей
     val minPasswordLength = 8
     val passwordLengthStatus = if (policies.minPasswordLength >= minPasswordLength) "Compliant" else "Critical"
     val passwordLengthRecommendation = if (policies.minPasswordLength < minPasswordLength) {
@@ -546,7 +658,7 @@ private fun analyzeNISTCompliance(policies: UserSecurityPolicies): List<Complian
         )
     )
 
-    // Проверка IA-5(1): Сложность пароля
+    //Сложность пароля
     val passwordComplexityStatus = if (policies.passwordComplexity) "Compliant" else "Critical"
     val passwordComplexityRecommendation = if (!policies.passwordComplexity) {
         StringResources.getString("ui_complianceCheck_nist_ia5_1_recommendation")
@@ -565,7 +677,7 @@ private fun analyzeNISTCompliance(policies: UserSecurityPolicies): List<Complian
         )
     )
 
-    // Проверка IA-5(2): Блокировка после неудачных попыток
+    //Блокировка после неудачных попыток
     val lockoutThreshold = 3
     val lockoutStatus = if (policies.accountLockoutThreshold <= lockoutThreshold && policies.accountLockoutThreshold > 0) "Compliant" else "Critical"
     val lockoutRecommendation = if (policies.accountLockoutThreshold > lockoutThreshold || policies.accountLockoutThreshold == 0) {
@@ -585,7 +697,7 @@ private fun analyzeNISTCompliance(policies: UserSecurityPolicies): List<Complian
         )
     )
 
-    // Проверка IA-5(1)(3): Срок действия пароля
+    //Срок действия пароля
     val passwordExpiration = 60
     val expirationStatus = if (policies.passwordExpiration <= passwordExpiration && policies.passwordExpiration > 0) "Compliant" else "Warning"
     val expirationRecommendation = if (policies.passwordExpiration > passwordExpiration || policies.passwordExpiration == 0) {
@@ -605,7 +717,7 @@ private fun analyzeNISTCompliance(policies: UserSecurityPolicies): List<Complian
         )
     )
 
-    // Проверка IA-5(1)(4): История паролей
+    //История паролей
     val historyCount = 5
     val historyStatus = if (policies.historyCount >= historyCount) "Compliant" else "Warning"
     val historyRecommendation = if (policies.historyCount < historyCount) {
@@ -628,11 +740,11 @@ private fun analyzeNISTCompliance(policies: UserSecurityPolicies): List<Complian
     return results
 }
 
-// Анализ соответствия PCI DSS
+//PCI DSS
 private fun analyzePCIDSSCompliance(policies: UserSecurityPolicies): List<ComplianceResult> {
     val results = mutableListOf<ComplianceResult>()
 
-    // Проверка 8.2.3: Минимальная длина пароля
+    //Минимальная длина пароля
     val minPasswordLength = 7
     val passwordLengthStatus = if (policies.minPasswordLength >= minPasswordLength) "Compliant" else "Critical"
     val passwordLengthRecommendation = if (policies.minPasswordLength < minPasswordLength) {
@@ -652,7 +764,7 @@ private fun analyzePCIDSSCompliance(policies: UserSecurityPolicies): List<Compli
         )
     )
 
-    // Проверка 8.2.1: Сложность пароля
+    //Сложность пароля
     val passwordComplexityStatus = if (policies.passwordComplexity) "Compliant" else "Critical"
     val passwordComplexityRecommendation = if (!policies.passwordComplexity) {
         StringResources.getString("ui_complianceCheck_pci_8_2_1_recommendation")
@@ -671,7 +783,7 @@ private fun analyzePCIDSSCompliance(policies: UserSecurityPolicies): List<Compli
         )
     )
 
-    // Проверка 8.1.8: Блокировка после неудачных попыток
+    //Блокировка после неудачных попыток
     val lockoutThreshold = 6
     val lockoutStatus = if (policies.accountLockoutThreshold <= lockoutThreshold && policies.accountLockoutThreshold > 0) "Compliant" else "Warning"
     val lockoutRecommendation = if (policies.accountLockoutThreshold > lockoutThreshold || policies.accountLockoutThreshold == 0) {
@@ -691,7 +803,7 @@ private fun analyzePCIDSSCompliance(policies: UserSecurityPolicies): List<Compli
         )
     )
 
-    // Проверка 8.2.4: Срок действия пароля
+    //Срок действия пароля
     val passwordExpiration = 90
     val expirationStatus = if (policies.passwordExpiration <= passwordExpiration && policies.passwordExpiration > 0) "Compliant" else "Warning"
     val expirationRecommendation = if (policies.passwordExpiration > passwordExpiration || policies.passwordExpiration == 0) {
@@ -711,7 +823,7 @@ private fun analyzePCIDSSCompliance(policies: UserSecurityPolicies): List<Compli
         )
     )
 
-    // Проверка 8.2.5: История паролей
+    //История паролей
     val historyCount = 4
     val historyStatus = if (policies.historyCount >= historyCount) "Compliant" else "Warning"
     val historyRecommendation = if (policies.historyCount < historyCount) {

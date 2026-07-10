@@ -32,7 +32,6 @@ import kotlin.coroutines.coroutineContext
 
 @Composable
 fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
-    // Состояние экрана
     val (logType, setLogType) = remember { mutableStateOf("Security") }
     val (maxEvents, setMaxEvents) = remember { mutableStateOf(50) }
     val (batchSize, setBatchSize) = remember { mutableStateOf(5) }
@@ -57,7 +56,7 @@ fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_systemLogs_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -71,7 +70,6 @@ fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Кнопка для скрытия/отображения настроек
         Button(
             onClick = { setShowSettings(!showSettings) },
             modifier = Modifier.fillMaxWidth(),
@@ -98,7 +96,6 @@ fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
             }
         }
 
-        // Область настроек (условно отображаемая)
         if (showSettings) {
             SettingsArea(
                 logType = logType,
@@ -152,7 +149,6 @@ fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
             )
         }
 
-        // Список логов
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -163,7 +159,7 @@ fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
-                // Заголовок списка
+                //Заголовок списка
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -186,7 +182,7 @@ fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                // Содержимое списка
+                //Содержимое списка
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -230,7 +226,6 @@ fun UI4_2_SuspiciousActivityScreenContent(navigateBack: () -> Unit) {
             }
         }
 
-        // Кнопка "Назад"
         Button(
             onClick = navigateBack,
             modifier = Modifier
@@ -274,7 +269,6 @@ private fun SettingsArea(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Тип логов
             Text(
                 text = StringResources.getString("ui_systemLogs_logType"),
                 style = MaterialTheme.typography.titleMedium,
@@ -338,7 +332,6 @@ private fun SettingsArea(
                 }
             }
 
-            // Количество событий
             Text(
                 text = StringResources.getString("ui_systemLogs_maxEvents"),
                 style = MaterialTheme.typography.titleMedium,
@@ -372,7 +365,7 @@ private fun SettingsArea(
                 )
             }
 
-            // Размер пакета
+            //Размер пакета
             Text(
                 text = StringResources.getString("ui_systemLogs_batchSize"),
                 style = MaterialTheme.typography.titleMedium,
@@ -406,7 +399,7 @@ private fun SettingsArea(
                 )
             }
 
-            // Фильтр по уровню важности
+            //Фильтр по важности
             Text(
                 text = StringResources.getString("ui_systemLogs_filterSeverity"),
                 style = MaterialTheme.typography.titleMedium,
@@ -482,7 +475,7 @@ private fun SettingsArea(
                 }
             }
 
-            // Кнопки управления
+            //Кнопки управления
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -508,7 +501,7 @@ private fun SettingsArea(
                 }
             }
 
-            // Прогресс
+            //Прогресс
             if (isLoading) {
                 Column(
                     modifier = Modifier.fillMaxWidth()
@@ -598,8 +591,7 @@ data class SystemLogEntry(
     var severity: String
 )
 
-// Загрузка системных логов порциями
-// Загрузка системных логов порциями
+//Загрузка системных логов порциями
 private suspend fun loadSystemLogsInBatches(
     lifecycleOwner: LifecycleOwner,
     logType: String,
@@ -612,35 +604,28 @@ private suspend fun loadSystemLogsInBatches(
 
     try {
         while (loadedEvents < totalEvents) {
-            // КРИТИЧЕСКИ ВАЖНО: Проверяем, не была ли корутина отменена
             coroutineContext.ensureActive()
 
-            // Проверяем, не был ли уничтожен жизненный цикл
             if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
                 break
             }
 
             val eventsToLoad = minOf(batchSize, totalEvents - loadedEvents)
 
-            // Загружаем пакет логов
             val batch = loadSingleBatch(logType, eventsToLoad, loadedEvents)
 
-            // Проверяем, не был ли уничтожен жизненный цикл во время загрузки
             if (lifecycleOwner.lifecycle.currentState == Lifecycle.State.DESTROYED) {
                 break
             }
 
-            // Проверяем, не была ли корутина отменена
             coroutineContext.ensureActive()
 
             onBatchLoaded(batch)
             loadedEvents += eventsToLoad
 
-            // Даем время UI обновиться
             delay(50)
         }
     } catch (e: CancellationException) {
-        // Корутина была отменена - это нормально
         Logger.info("Log loading was cancelled by user")
     } catch (e: Exception) {
         if (lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
@@ -653,14 +638,13 @@ private suspend fun loadSystemLogsInBatches(
     }
 }
 
-// Загрузка одной порции логов
+//Загрузка одного пакета логов
 private fun loadSingleBatch(
     logType: String,
     maxEvents: Int,
     skipEvents: Int
 ): List<SystemLogEntry> {
     try {
-        // Проверяем, что приложение запущено от имени администратора
         if (!AppConfig.isRunningAsAdmin()) {
             return listOf(
                 SystemLogEntry(
@@ -673,7 +657,6 @@ private fun loadSingleBatch(
             )
         }
 
-        // Проверяем, доступен ли PowerShell
         val testPsProcess = ProcessBuilder("powershell", "-Command", "Get-Command Get-WinEvent -ErrorAction SilentlyContinue")
         val testPsExitCode = testPsProcess.start().waitFor()
 
@@ -689,7 +672,6 @@ private fun loadSingleBatch(
             )
         }
 
-        // Проверяем версию PowerShell
         val psVersionProcess = ProcessBuilder("powershell", "-Command", $$"""
     `$PSVersionTable.PSVersion.Major
 """.trimIndent())
@@ -701,7 +683,6 @@ private fun loadSingleBatch(
             0
         }
 
-        // Проверка наличия PowerShell
         val wherePsProcess = ProcessBuilder("where", "powershell")
         val wherePsExitCode = wherePsProcess.start().waitFor()
 
@@ -718,14 +699,11 @@ private fun loadSingleBatch(
         }
 
 
-        // Упрощенная команда без параметра -Skip (проблемный параметр)
         val command = if (psVersion >= 5) {
-            // Для новых версий PowerShell
             "Get-WinEvent -LogName '$logType' -MaxEvents $maxEvents | " +
                     "Select-Object TimeCreated, Id, Message | " +
                     "ConvertTo-Csv -NoTypeInformation"
         } else {
-            // Для старых версий PowerShell
             "Get-EventLog -LogName '$logType' -Newest $maxEvents | " +
                     "Select-Object TimeGenerated, EventID, Message | " +
                     "ConvertTo-Csv -NoTypeInformation"
@@ -735,8 +713,7 @@ private fun loadSingleBatch(
             .redirectErrorStream(true)
             .start()
 
-        // Добавляем таймаут для предотвращения зависания
-        val timeoutMs = 10000 // 10 секунд
+        val timeoutMs = 10000 //10 секунд
         val outputBytes = try {
             process.waitFor(timeoutMs.toLong(), TimeUnit.MILLISECONDS)
             process.inputStream.readBytes()
@@ -755,7 +732,6 @@ private fun loadSingleBatch(
 
         val exitCode = process.exitValue()
         if (exitCode != 0) {
-            // КРИТИЧЕСКИ ВАЖНО: Читаем реальное сообщение об ошибке
             val errorOutput = try {
                 String(process.errorStream.readBytes(), Charset.forName("CP866"))
             } catch (e: Exception) {
@@ -773,10 +749,8 @@ private fun loadSingleBatch(
             )
         }
 
-        // Читаем вывод с правильной кодировкой
         val output = String(outputBytes, Charset.forName("CP866"))
 
-        // Парсим вывод в формате CSV
         return parseCsvLogs(output)
     } catch (e: Exception) {
         Logger.error("Exception during system logs loading", e)
@@ -792,19 +766,16 @@ private fun loadSingleBatch(
     }
 }
 
-// Парсинг вывода в формате CSV
 private fun parseCsvLogs(csv: String): List<SystemLogEntry> {
     val entries = mutableListOf<SystemLogEntry>()
 
-    // Разбиваем на строки
     val lines = csv.split("\n")
         .map { it.trim() }
         .filter { it.isNotEmpty() && !it.startsWith("#") }
 
-    // Пропускаем заголовок CSV
     for (line in lines.drop(1)) {
         try {
-            // Парсим CSV вручную (простой парсер)
+            //Парсим CSV вручную (простой парсер)
             val parts = parseSimpleCsvLine(line)
             if (parts.size < 3) continue
 
@@ -853,7 +824,6 @@ private fun parseCsvLogs(csv: String): List<SystemLogEntry> {
                 ))
             }
         } catch (e: Exception) {
-            // Пропускаем проблемные строки
             Logger.warning("Error parsing log line: $line. ${e.message}")
         }
     }
@@ -861,7 +831,6 @@ private fun parseCsvLogs(csv: String): List<SystemLogEntry> {
     return entries
 }
 
-// Простой парсер CSV (без поддержки сложных случаев)
 private fun parseSimpleCsvLine(line: String): List<String> {
     val result = mutableListOf<String>()
     var current = ""
@@ -882,11 +851,9 @@ private fun parseSimpleCsvLine(line: String): List<String> {
     return result
 }
 
-// Парсинг вывода PowerShell (улучшенная версия)
 private fun parseSystemLogs(output: String): List<SystemLogEntry> {
     val entries = mutableListOf<SystemLogEntry>()
 
-    // Разбиваем на строки и фильтруем пустые
     val lines = output.split("\n")
         .map { it.trim() }
         .filter { it.isNotEmpty() }

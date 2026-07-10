@@ -1,3 +1,4 @@
+//ЭТОТ ЭКРАН НЕ ИСПОЛЬЗУЕТСЯ
 package org.crepo.updated_user_manager
 
 import androidx.compose.foundation.background
@@ -33,7 +34,7 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_auditReport_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold)
@@ -47,7 +48,7 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
 
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Настройки отчета
+        //Настройки отчёта
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -59,7 +60,7 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Тип отчета
+                //Тип отчёта
                 Text(
                     text = StringResources.getString("ui_auditReport_type"),
                     style = MaterialTheme.typography.titleMedium,
@@ -87,7 +88,6 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
-                            // Список типов отчетов
                             Text("User", modifier = Modifier.clickable {
                                 reportType = "User"
                                 expanded = false
@@ -104,7 +104,7 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
                     }
                 }
 
-                // Дата отчета
+                //Дата отчёта
                 Text(
                     text = StringResources.getString("ui_auditReport_date"),
                     style = MaterialTheme.typography.titleMedium,
@@ -124,7 +124,7 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
                     }
                 }
 
-                // Кнопка генерации отчета
+                //Кнопка генерации отчёта
                 Button(
                     onClick = {
                         generateAuditReport(reportType, reportDate) { records ->
@@ -141,7 +141,7 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
                     )
                 }
 
-                // Отчет
+                //Отчёт
                 Text(
                     text = StringResources.getString("ui_auditReport_results"),
                     style = MaterialTheme.typography.titleMedium,
@@ -196,7 +196,6 @@ fun UI4_3_AuditReportScreenContent(navigateBack: () -> Unit) {
             }
         }
 
-        // Кнопка "Назад"
         Button(
             onClick = navigateBack,
             modifier = Modifier
@@ -221,7 +220,6 @@ data class AuditRecord(
 
 private fun generateAuditReport(type: String, date: LocalDate, onResult: (List<AuditRecord>) -> Unit) {
     try {
-        // Генерируем отчет на основе логов
         val logFile = File(System.getProperty("user.home"), ".usermanager/usermanager.log")
         if (!logFile.exists()) {
             onResult(emptyList())

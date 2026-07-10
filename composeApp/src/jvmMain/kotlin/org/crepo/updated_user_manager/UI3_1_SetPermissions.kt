@@ -28,7 +28,7 @@ import javax.swing.JFileChooser
 
 @Composable
 fun UI4_1(navigateBack: () -> Unit) {
-    // Проверка прав администратора
+    //Проверка прав администратора
     val isAdmin by remember {
         derivedStateOf {
             try {
@@ -54,7 +54,7 @@ fun UI4_1(navigateBack: () -> Unit) {
             )
         }
     }
-    // --- Состояния ---
+    //Состояния
     var path by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var showUserDialog by remember { mutableStateOf(false) }
@@ -66,7 +66,7 @@ fun UI4_1(navigateBack: () -> Unit) {
     var fullControl by remember { mutableStateOf(false) }
     var result by remember { mutableStateOf("") }
 
-    // --- Загрузка пользователей при первом открытии ---
+    //Загрузка пользователей
     LaunchedEffect(Unit) {
         try {
             val process = ProcessBuilder("net", "user")
@@ -75,7 +75,6 @@ fun UI4_1(navigateBack: () -> Unit) {
             val output = process.inputStream.bufferedReader(StandardCharsets.UTF_8).readText()
             val lines = output.lines()
 
-            // Ищем строку, содержащую "Пользователи" (с любым количеством пробелов)
             val userSectionStart = lines.indexOfFirst { it.contains(StringResources.getString("ui_setPermissions_button_users"), ignoreCase = true) }
 
             if (userSectionStart == -1) {
@@ -84,7 +83,6 @@ fun UI4_1(navigateBack: () -> Unit) {
                 return@LaunchedEffect
             }
 
-            // Пропускаем заголовок и пустые строки
             val userLines = lines
                 .subList(userSectionStart + 1, lines.size)
                 .takeWhile { it.isNotBlank() && !it.contains(StringResources.getString("ui_setPermissions_commandCompleated")) }
@@ -107,14 +105,14 @@ fun UI4_1(navigateBack: () -> Unit) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("ui_setPermissions_title"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.align(Alignment.Start)
         )
 
-        // --- Блок: Пользователь ---
+        //Пользователь
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
@@ -128,49 +126,49 @@ fun UI4_1(navigateBack: () -> Unit) {
                 singleLine = true
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Button(
-                onClick = { showUserDialog = true },
-                modifier = Modifier.height(56.dp)
-            ) {
-                Text(StringResources.getString("ui_setPermissions_userChoose_button"))
-            }
+            //Button(
+            //    onClick = { showUserDialog = true },
+            //    modifier = Modifier.height(56.dp)
+            //) {
+            //    Text(StringResources.getString("ui_setPermissions_userChoose_button"))
+            //}
         }
 
-        // Диалог выбора пользователя
-        if (showUserDialog) {
-            AlertDialog(
-                onDismissRequest = { showUserDialog = false },
-                title = { Text(StringResources.getString("ui_setPermissions_userChoose_hint")) },
-                text = {
-                    LazyColumn(modifier = Modifier.height(300.dp)) {
-                        items(users) { user ->
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .clickable { username = user; showUserDialog = false },
-                                shape = MaterialTheme.shapes.small,
-                                color = MaterialTheme.colorScheme.surface
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(start = 16.dp)
-                                ) {
-                                    Text(text = user, fontSize = 16.sp)
-                                }
-                            }
-                        }
-                    }
-                },
-                confirmButton = {
-                    Button(onClick = { showUserDialog = false }) {
-                        Text(StringResources.getString("ui_setPermissions_userChoose_close"))
-                    }
-                }
-            )
-        }
+            ////Диалог выбора пользователя
+            //if (showUserDialog) {
+        //    AlertDialog(
+        //        onDismissRequest = { showUserDialog = false },
+        //        title = { Text(StringResources.getString("ui_setPermissions_userChoose_hint")) },
+        //        text = {
+        //            LazyColumn(modifier = Modifier.height(300.dp)) {
+        //                items(users) { user ->
+        //                    Surface(
+        //                        modifier = Modifier
+        //                            .fillMaxWidth()
+                    //                            .height(48.dp)
+                    //                            .clickable { username = user; showUserDialog = false },
+        //                        shape = MaterialTheme.shapes.small,
+        //                        color = MaterialTheme.colorScheme.surface
+                    //                    ) {
+        //                        Row(
+        //                            verticalAlignment = Alignment.CenterVertically,
+        //                            modifier = Modifier.padding(start = 16.dp)
+                    //                        ) {
+        //                            Text(text = user, fontSize = 16.sp)
+                    //                        }
+                    //                    }
+                    //                }
+                    //            }
+                    //        },
+        //        confirmButton = {
+        //            Button(onClick = { showUserDialog = false }) {
+        //                Text(StringResources.getString("ui_setPermissions_userChoose_close"))
+                    //            }
+                    //        }
+                    //    )
+        //}
 
-        // --- Блок: Путь ---
+        //Путь
         OutlinedTextField(
             value = path,
             onValueChange = { path = it },
@@ -180,7 +178,7 @@ fun UI4_1(navigateBack: () -> Unit) {
             singleLine = true
         )
 
-        // Кнопка Обзор
+        //Обзор
         Button(
             onClick = { showFileChooser { selectedPath ->
                 if (selectedPath != null) path = selectedPath
@@ -190,10 +188,9 @@ fun UI4_1(navigateBack: () -> Unit) {
             Text(StringResources.getString("ui_setPermissions_fileField_buttonChoose"))
         }
 
-        // Разделитель
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // --- Блок: Права ---
+        //Права
         Text(
             text = StringResources.getString("ui_setPermissions_choosePerms_title"),
             style = MaterialTheme.typography.titleLarge,
@@ -262,7 +259,7 @@ fun UI4_1(navigateBack: () -> Unit) {
             }
         }
 
-        // Примечание
+        //Примечание
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -277,7 +274,7 @@ fun UI4_1(navigateBack: () -> Unit) {
             )
         }
 
-        // Кнопки
+        //Кнопки
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth()
@@ -295,16 +292,14 @@ fun UI4_1(navigateBack: () -> Unit) {
 
             Button(
                 onClick = {
-                    // Сброс результата
                     result = ""
 
-                    //
+
                     val charset = if (Locale.getDefault().language == "ru")
                         Charset.forName("CP866")
                     else
                         Charset.forName("UTF-8")
 
-                    // Проверка ввода
                     if (username.isBlank()) {
                         result = StringResources.getString("ui_setPermissions_error_noName")
                         return@Button
@@ -314,7 +309,7 @@ fun UI4_1(navigateBack: () -> Unit) {
                         return@Button
                     }
 
-                    // Формирование команды
+                    //Формирование команды
                     try {
                         val permissions = when {
                             fullControl -> "F"
@@ -335,7 +330,6 @@ fun UI4_1(navigateBack: () -> Unit) {
                         val command = listOf("icacls", path, "/grant", "$username:($permissions)")
                         println(StringResources.getString("ui_setPermissions_system_executingInfo") + command.joinToString(" "))
 
-                        // Логируем попытку изменения прав
                         Logger.info("Attempting to set permissions: user=$username, path=$path, permissions=$permissions")
 
                         val process = ProcessBuilder(command).redirectErrorStream(true).start()
@@ -345,7 +339,6 @@ fun UI4_1(navigateBack: () -> Unit) {
 
                         if (exitCode == 0) {
                             result = StringResources.getString("ui_setPermissions_system_success_1") + username + StringResources.getString("ui_setPermissions_success_2") + path
-                            // Логируем успешное применение прав
                             Logger.info("Permissions successfully set: user=$username, path=$path, permissions=$permissions")
                         } else {
                             result = when {
@@ -354,12 +347,10 @@ fun UI4_1(navigateBack: () -> Unit) {
                                 output.contains(StringResources.getString("ui_setPermissions_error_accessDenied")) -> StringResources.getString("ui_setPermissions_error_notEnoughRights")
                                 else -> StringResources.getString("ui_setPermissions_error_code") + exitCode
                             }
-                            // Логируем неудачное применение прав
                             Logger.warning("Failed to set permissions: user=$username, path=$path, error=$output")
                         }
                     } catch (e: Exception) {
                         result = StringResources.getString("ui_setPermissions_error_message") + e.message
-                        // Логируем исключение
                         Logger.error("Exception during permissions setting", e)
                     }
                 },
@@ -398,7 +389,7 @@ private fun PermissionItem(
     }
 }
 
-// --- Диалог выбора файла (Swing) ---
+//Диалог выбора файла
 @OptIn(ExperimentalComposeUiApi::class)
 private fun showFileChooser(onResult: (String?) -> Unit) {
     val fileChooser = JFileChooser().apply {

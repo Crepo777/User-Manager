@@ -28,9 +28,7 @@ fun MainMenu() {
     val navigator = LocalNavigator.current ?: return
     //println(checkCodePage())
 
-    // Состояние диалога
     var showLanguageDialog by remember { mutableStateOf(false) }
-    // Состояние для диалога "Открыть..."
     var showOpenDialog by remember { mutableStateOf(false) }
 
     Column(
@@ -40,14 +38,11 @@ fun MainMenu() {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // Заголовок
-
-        // Проверка прав администратора
         val isRunningAsAdmin by remember {
             derivedStateOf { AppConfig.isRunningAsAdmin() }
         }
 
-        // Баннер предупреждения о недостатке прав
+        //Предупреждение
         if (!isRunningAsAdmin) {
             Card(
                 modifier = Modifier
@@ -83,7 +78,7 @@ fun MainMenu() {
             }
         }
 
-        // Заголовок
+        //Заголовок
         Text(
             text = StringResources.getString("app_name"),
             style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
@@ -96,28 +91,30 @@ fun MainMenu() {
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
-        // Разделитель
         Divider(modifier = Modifier.padding(vertical = 8.dp))
 
-        // Основные блоки (в виде Card)
+        //Основные блоки
         Row(
             horizontalArrangement = Arrangement.spacedBy(24.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Блок 1: Общее
+            //Общее
             CategoryCard(
                 title = StringResources.getString("ui_mainMenu_mainCategory_title"),
-                icon = "ℹ️",
+                icon = "ℹ\uFE0F",
                 items = listOf(
-                    MenuItem(StringResources.getString("ui_mainMenu_mainCategory_main"), onClick = {navigator.push(HelpScreen)})
+                    MenuItem(StringResources.getString("ui_mainMenu_mainCategory_main"), onClick = {navigator.push(HelpScreen)}),
+                    MenuItem(StringResources.getString("ui_mainMenu_mainCategory_developer"), onClick = {navigator.push(DeveloperInfoScreen)}),
+                    MenuItem(StringResources.getString("ui_mainMenu_mainCategory_futurePlans"), onClick = {navigator.push(FuturePlansScreen)})
+
                 ),
                 modifier = Modifier.weight(1f)
             )
 
-            // Блок 2: Пользователи
+            //Пользователи
             CategoryCard(
                 title = StringResources.getString("ui_mainMenu_usersCategory_title"),
-                icon = "👥",
+                icon = "\uD83D\uDC65",
                 items = listOf(
                     MenuItem(StringResources.getString("ui_mainMenu_usersCategory_create")) { navigator.push(CreateUserScreen) },
                     MenuItem(StringResources.getString("ui_mainMenu_usersCategory_delete")) { navigator.push(DeleteUserScreen) },
@@ -130,10 +127,10 @@ fun MainMenu() {
                 modifier = Modifier.weight(1f)
             )
 
-            // Блок 3: Файлы и права
+            //Файлы и права
             CategoryCard(
                 title = StringResources.getString("ui_mainMenu_filesCategory_title"),
-                icon = "🔒",
+                icon = "\uD83D\uDD12",
                 items = listOf(
                     MenuItem(StringResources.getString("ui_mainMenu_filesCategory_setPermissions")) { navigator.push(SetPermissionsScreen) },
                     MenuItem(StringResources.getString("ui_mainMenu_filesCategory_viewPermissions")) { navigator.push(ViewPermissionsScreen) },
@@ -143,7 +140,7 @@ fun MainMenu() {
                 modifier = Modifier.weight(1f)
             )
 
-            // Блок 4: Политика безопасности
+            //Политика безопасности
             CategoryCard(
                 title = StringResources.getString("ui_mainMenu_securityPolicies_title"),
                 icon = "\uD83D\uDEE1\uFE0F",
@@ -155,36 +152,36 @@ fun MainMenu() {
                 modifier = Modifier.weight(1f)
             )
 
-            // Блок 4: Экспорт данных
+            //Экспорт данных
             //CategoryCard(
-            //    title = StringResources.getString("ui_mainMenu_exportData_title"),
-            //    icon = "📊",
-            //    items = listOf(
-            //        MenuItem(StringResources.getString("ui_mainMenu_exportData_users_title")) {
-            //            val csv = StringResources.getString("ui_mainMenu_exportData_users_text") +
-            //                    UserManager.exportUsersToCsv()
-            //            val exportFile = File(System.getProperty("user.home"), "usermanager_users.csv")
-            //            exportFile.writeText(csv)
+            //   title = StringResources.getString("ui_mainMenu_exportData_title"),
+            //   icon = "📊",
+            //   items = listOf(
+            //       MenuItem(StringResources.getString("ui_mainMenu_exportData_users_title")) {
+            //           val csv = StringResources.getString("ui_mainMenu_exportData_users_text") +
+            //                   UserManager.exportUsersToCsv()
+            //           val exportFile = File(System.getProperty("user.home"), "usermanager_users.csv")
+            //           exportFile.writeText(csv)
 //
-            //            // Открываем папку с экспортированным файлом
-            //            ProcessBuilder("explorer", "/select,${exportFile.absolutePath}").start()
-            //        },
-            //        MenuItem(StringResources.getString("ui_mainMenu_exportData_logs_title")) {
-            //            val csv = StringResources.getString("ui_mainMenu_exportData_logs_text") + Logger.exportToCsv()
-            //            val exportFile = File(System.getProperty("user.home"), "usermanager_logs.csv")
-            //            exportFile.writeText(csv)
+            //           //Открываем папку с экспортированным файлом
+            //           ProcessBuilder("explorer", "/select,${exportFile.absolutePath}").start()
+            //       },
+            //       MenuItem(StringResources.getString("ui_mainMenu_exportData_logs_title")) {
+            //           val csv = StringResources.getString("ui_mainMenu_exportData_logs_text") + Logger.exportToCsv()
+            //           val exportFile = File(System.getProperty("user.home"), "usermanager_logs.csv")
+            //           exportFile.writeText(csv)
 //
-            //            // Открываем папку с экспортированным файлом
-            //            ProcessBuilder("explorer", "/select,${exportFile.absolutePath}").start()
-            //        }
-            //    ),
-            //    modifier = Modifier.weight(1f)
+            //           //Открываем папку с экспортированным файлом
+            //           ProcessBuilder("explorer", "/select,${exportFile.absolutePath}").start()
+            //       }
+            //   ),
+            //   modifier = Modifier.weight(1f)
             //)
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Нижняя панель
+        //Нижняя панель
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
@@ -195,7 +192,7 @@ fun MainMenu() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            // Кнопка выбора языка
+            //Кнопка выбора языка
             IconButton(
                 onClick = { showLanguageDialog = true },
                 modifier = Modifier.size(36.dp)
@@ -206,33 +203,32 @@ fun MainMenu() {
                 )
             }
 
-            // В нижней панели, между кнопками выбора языка и "Открыть..."
             var showUmaiWarning by remember { mutableStateOf(false) }
 
 
-            // Кнопка UMAI
+            //Кнопка UMAI
             IconButton(
                 onClick = { showUmaiWarning = true },
                 modifier = Modifier.size(36.dp)
             ) {
                 Text(
-                    text = "🤖",
+                    text = "\uD83E\uDD16",
                     fontSize = 18.sp
                 )
             }
 
-            // Кнопка "Открыть..."
+            //Кнопка Открыть
             IconButton(
                 onClick = { showOpenDialog = true },
                 modifier = Modifier.size(36.dp)
             ) {
                 Text(
-                    text = "📁",
+                    text = "\uD83D\uDCC1",
                     fontSize = 18.sp
                 )
             }
 
-            // Диалог предупреждения о безопасности UMAI
+            //Диалог предупреждения о безопасности UMAI
             if (showUmaiWarning) {
                 AlertDialog(
                     onDismissRequest = { showUmaiWarning = false },
@@ -266,26 +262,26 @@ fun MainMenu() {
                         }
                     },
                     //dismissButton = {
-                    //    Button(onClick = { showUmaiWarning = false }) {
-                    //        Text("Назад")
-                    //    }
+                    //   Button(onClick = { showUmaiWarning = false }) {
+                    //       Text("Назад")
+                    //   }
                     //}
                 )
             }
 
 
 
-            // Кнопка "Настройки"
+            //Кнопка Настройки
             //Button(
-            //    onClick = {
-            //        // Временный сброс предупреждения (только для отладки)
-            //        AppConfig.resetDisclaimer()
-            //        println("Состояние предупреждения сброшено. При следующем запуске появится экран предупреждения.")
-            //    },
-            //    shape = RoundedCornerShape(8.dp),
-            //    modifier = Modifier.height(36.dp)
+            //   onClick = {
+            //       //Временный сброс предупреждения (только для отладки)
+            //       AppConfig.resetDisclaimer()
+            //       println("Состояние предупреждения сброшено. При следующем запуске появится экран предупреждения.")
+            //   },
+            //   shape = RoundedCornerShape(8.dp),
+            //   modifier = Modifier.height(36.dp)
             //) {
-            //    Text(text = "Сброс предупреждения", fontSize = 14.sp)
+            //   Text(text = "Сброс предупреждения", fontSize = 14.sp)
             //}
                 Button(
                 onClick = { navigator.push(SettingsScreen) },
@@ -297,7 +293,7 @@ fun MainMenu() {
         }
     }
 
-    // Диалог выбора языка
+    //Диалог выбора языка
     if (showLanguageDialog) {
         AlertDialog(
             onDismissRequest = { showLanguageDialog = false },
@@ -323,7 +319,7 @@ fun MainMenu() {
         )
     }
 
-    // Диалог выбора системных утилит
+    //Диалог выбора системных утилит
     if (showOpenDialog) {
         AlertDialog(
             onDismissRequest = { showOpenDialog = false },
@@ -340,7 +336,7 @@ fun MainMenu() {
                         }
                     )
                     SystemToolItem(
-                        icon = "🔍",
+                        icon = "\uD83D\uDD0E",
                         title = StringResources.getString("ui_mainMenu_utilities_regedit_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_regedit_hint"),
                         onClick = {
@@ -349,7 +345,7 @@ fun MainMenu() {
                         }
                     )
                     SystemToolItem(
-                        icon = "🧹",
+                        icon = "\uD83E\uDDF9",
                         title = StringResources.getString("ui_mainMenu_utilities_cleanmgr_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_cleanmgr_hint"),
                         onClick = {
@@ -358,25 +354,25 @@ fun MainMenu() {
                         }
                     )
                     SystemToolItem(
-                        icon = "💾",
+                        icon = "\uD83D\uDCBE",
                         title = StringResources.getString("ui_mainMenu_utilities_diskmgmt_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_diskmgmt_hint"),
                         onClick = { openSystemTool("diskmgmt.msc") }
                     )
                     SystemToolItem(
-                        icon = "⚙️",
+                        icon = "⚙\uFE0F",
                         title = StringResources.getString("ui_mainMenu_utilities_services_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_services_hint"),
                         onClick = { openSystemTool("services.msc") }
                     )
                     SystemToolItem(
-                        icon = "🛡️",
+                        icon = "\uD83D\uDEE1\uFE0F",
                         title = StringResources.getString("ui_mainMenu_utilities_gpedit_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_gpedit_hint"),
                         onClick = { openSystemTool("gpedit.msc") }
                     )
                     SystemToolItem(
-                        icon = "🖥️",
+                        icon = "\uD83D\uDCBB",
                         title = StringResources.getString("ui_mainMenu_utilities_compmgmt_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_compmgmt_hint"),
                         onClick = { openSystemTool("compmgmt.msc") }
@@ -388,13 +384,13 @@ fun MainMenu() {
                         onClick = { openSystemTool("taskschd.msc") }
                     )
                     SystemToolItem(
-                        icon = "🔌",
+                        icon = "\uD83D\uDD0C",
                         title = StringResources.getString("ui_mainMenu_utilities_devmgmt_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_devmgmt_hint"),
                         onClick = { openSystemTool("devmgmt.msc") }
                     )
                     SystemToolItem(
-                        icon = "🔥",
+                        icon = "\uD83D\uDD25",
                         title = StringResources.getString("ui_mainMenu_utilities_wf_title"),
                         description = StringResources.getString("ui_mainMenu_utilities_wf_hint"),
                         onClick = { openSystemTool("wf.msc") }
@@ -484,7 +480,6 @@ private fun MenuItemButton(item: MenuItem) {
     }
 }
 
-// "Открыть..." выбор
 @Composable
 private fun SystemToolItem(
     icon: String,
